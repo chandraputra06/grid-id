@@ -160,7 +160,7 @@ export default function Landing() {
             <div className="mx-auto max-w-[1120px] rounded-[88px] border-[6px] border-white bg-brand px-3 py-16 md:px-3 md:py-20">
               <Reveal className="text-center">
                 <h2 className="font-heading text-4xl font-extrabold text-white md:text-6xl">
-                  Cara Kerja PawSphere
+                  Cara Kerja GRID ID
                 </h2>
                 <p className="mt-4 font-body-lg text-base text-white md:text-lg">
                   Mulai dalam hitungan menit, bantu jaga keandalan listrik di
