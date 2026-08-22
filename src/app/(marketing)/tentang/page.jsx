@@ -24,7 +24,7 @@ export default function Tentang() {
     <>
       {/* Mission hero */}
       <section className="relative isolate overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-cover bg-center" style={{ backgroundImage: "linear-gradient(rgba(13,21,38,0.72),rgba(13,21,38,0.82)), url('/hero-img.png')" }} />
+        <div className="absolute inset-0 -z-10 bg-cover bg-center" style={{ backgroundImage: "linear-gradient(rgba(13,21,38,0.72),rgba(13,21,38,0.82)), url('/tentang-img.jpeg')" }} />
         <div className="mx-auto flex max-w-[820px] flex-col items-center px-margin-mobile py-24 text-center md:py-28">
           <HeroIn><span className="font-label-bold text-label-bold uppercase tracking-wider text-accent">Tentang GRID·ID</span></HeroIn>
           <HeroIn delay={0.08}><h1 className="mt-4 font-heading text-4xl font-extrabold leading-[1.08] tracking-tight text-white md:text-6xl">Jaringan listrik yang lebih <span className="text-accent">andal</span></h1></HeroIn>

@@ -30,7 +30,7 @@ export default function CaraKerja() {
     <>
       {/* Hero */}
       <section className="relative isolate overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-cover bg-center" style={{ backgroundImage: "linear-gradient(rgba(13,21,38,0.72),rgba(13,21,38,0.82)), url('/hero-img.png')" }} />
+        <div className="absolute inset-0 -z-10 bg-cover bg-center" style={{ backgroundImage: "linear-gradient(rgba(13,21,38,0.72),rgba(13,21,38,0.82)), url('/cara-kerja-img.jpeg')" }} />
         <div className="mx-auto flex max-w-[820px] flex-col items-center px-margin-mobile py-24 text-center md:py-28">
           <HeroIn><h1 className="font-heading text-4xl font-extrabold leading-[1.08] tracking-tight text-white md:text-6xl">Alur Kerja <span className="text-accent">GRID·ID</span></h1></HeroIn>
           <HeroIn delay={0.12}><p className="mx-auto mt-6 max-w-xl font-body-lg text-body-lg text-white/85">Dari laporan warga hingga rekomendasi tindakan, pahami bagaimana GRID·ID membantu menjaga jaringan listrik di sekitarmu.</p></HeroIn>
