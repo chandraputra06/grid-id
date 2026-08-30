@@ -40,7 +40,7 @@ export function SiteFooter() {
         <div className="md:col-span-4">
           <h4 className="mb-4 font-heading text-sm font-bold uppercase tracking-wider text-white">Kontak</h4>
           <ul className="space-y-3 font-body-md text-body-md text-white/60">
-            <li className="flex items-start gap-2"><span className="material-symbols-outlined text-[18px] text-accent">location_on</span> Kampus Bukit Jimbaran, Gedung Ilmu Komputer, Bali</li>
+            <li className="flex items-start gap-2"><span className="material-symbols-outlined text-[18px] text-accent">location_on</span> Jl. Akasia XVI No.100, Sumerta Kelod, Denpasar Selatan, Kota Denpasar, Bali 80235</li>
             <li className="flex items-center gap-2"><span className="material-symbols-outlined text-[18px] text-accent">call</span> +62 812-3456-7890</li>
             <li className="flex items-center gap-2"><span className="material-symbols-outlined text-[18px] text-accent">mail</span> hello@grid-id.id</li>
           </ul>

@@ -17,7 +17,7 @@ const sources = [
   { icon: faBolt, color: "text-secondary-container", label: "Jaringan Utilitas (PLN)" },
   { icon: faUsers, color: "text-risk-aman", label: "Inisiatif CSR / ESG" },
 ];
-const team = [["Budi Santoso", "Lead Data Scientist"], ["Ayu Lestari", "Head of Operations"], ["Rizky Pratama", "Infrastructure Engineer"], ["Siti Rahma", "Community Lead"]];
+const team = [["Kadek Adika Ananda Aryana", "Pimpinan dan Kepala Bidang Keuangan"], ["Putu Disa Kalinda Dharmasaputra", "Kepala Pemasaran dan Komunikasi"], ["I Putu Thio Mahapradana", "Pemimpin Riset & Validasi Ilmiah"], ["I Gusti Putu Chandra Patra Artha Kusuma", "Kepala Bidang Teknologi"]];
 
 export default function Tentang() {
   return (
