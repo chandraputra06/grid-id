@@ -1,5 +1,6 @@
 import { Reveal, HeroIn } from "@/components/motion";
 import Link from "next/link";
+import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBolt,
@@ -17,7 +18,12 @@ const sources = [
   { icon: faBolt, color: "text-secondary-container", label: "Jaringan Utilitas (PLN)" },
   { icon: faUsers, color: "text-risk-aman", label: "Inisiatif CSR / ESG" },
 ];
-const team = [["Kadek Adika Ananda Aryana", "Pimpinan dan Kepala Bidang Keuangan"], ["Putu Disa Kalinda Dharmasaputra", "Kepala Pemasaran dan Komunikasi"], ["I Putu Thio Mahapradana", "Pemimpin Riset & Validasi Ilmiah"], ["I Gusti Putu Chandra Putra Artha Kusuma", "Kepala Bidang Teknologi"]];
+const team = [
+  { name: "Kadek Adika Ananda Aryana", role: "Pimpinan dan Kepala Bidang Keuangan", image: "/dedik.png" },
+  { name: "Putu Disa Kalinda Dharmasaputra", role: "Kepala Pemasaran dan Komunikasi", image: "/disa.png" },
+  { name: "I Putu Thio Mahapradana", role: "Pemimpin Riset & Validasi Ilmiah", image: "/thio.png" },
+  { name: "I Gusti Putu Chandra Putra Artha Kusuma", role: "Kepala Bidang Teknologi", image: "/chandra.png" },
+];
 
 export default function Tentang() {
   return (
@@ -116,15 +122,20 @@ export default function Tentang() {
           <p className="font-body-md text-body-md text-on-surface-variant">Para profesional di balik teknologi GRID·ID.</p>
         </Reveal>
         <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-          {team.map(([name, role], i) => (
-            <Reveal key={name} delay={i * 0.08}>
+          {team.map((member, i) => (
+            <Reveal key={member.name} delay={i * 0.08}>
               <div className="flex flex-col items-center gap-4">
-                <div className="grid h-32 w-32 place-items-center rounded-full bg-surface-container-highest shadow-sm">
-                  <FontAwesomeIcon icon={faUser} className="h-8 w-8 text-outline" />
+                <div className="relative h-32 w-32 overflow-hidden rounded-full bg-surface-container-highest shadow-sm">
+                  <Image
+                    src={member.image}
+                    alt={member.name}
+                    fill
+                    className="object-cover"
+                  />
                 </div>
                 <div className="text-center">
-                  <h4 className="font-label-bold text-label-bold">{name}</h4>
-                  <p className="font-label-sm text-label-sm text-on-surface-variant">{role}</p>
+                  <h4 className="font-label-bold text-label-bold">{member.name}</h4>
+                  <p className="font-label-sm text-label-sm text-on-surface-variant">{member.role}</p>
                 </div>
               </div>
             </Reveal>
