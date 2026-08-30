@@ -76,7 +76,7 @@ export default function Tentang() {
         <Reveal className="mx-auto flex max-w-[800px] flex-col items-center gap-6 px-margin-mobile text-center md:px-gutter">
           <FontAwesomeIcon icon={faQuoteLeft} className="h-8 w-8 text-primary-fixed-dim" />
           <h2 className="font-headline-lg-mobile text-headline-lg-mobile leading-tight md:font-headline-lg md:text-headline-lg">
-            &ldquo;Kami bukan aplikasi pelapor baru — kami lapisan kecerdasan yang menjembatani warga dan penyedia layanan.&rdquo;
+            &ldquo;Kami bukan aplikasi pelapor baru kami lapisan kecerdasan yang menjembatani warga dan penyedia layanan.&rdquo;
           </h2>
         </Reveal>
       </section>
