@@ -2,60 +2,67 @@
 import { useEffect, useRef } from "react";
 import "leaflet/dist/leaflet.css";
 
-const zones = [
-  { name: "Denpasar Selatan", level: "KRITIS", color: "#E5484D", lat: -8.72, lng: 115.235, note: "Beban puncak + prediksi hujan lebat (BMKG)" },
-  { name: "Denpasar Barat", level: "WASPADA", color: "#F4B740", lat: -8.66, lng: 115.19, note: "Hujan lebat diprediksi 3 hari ke depan" },
-  { name: "Denpasar Timur", level: "WASPADA", color: "#F4B740", lat: -8.645, lng: 115.25, note: "5 laporan vegetasi dekat kabel" },
-  { name: "Denpasar Utara", level: "AMAN", color: "#21A366", lat: -8.6, lng: 115.215, note: "Kondisi normal" },
-];
+const WARNA = { kritis: "#E5484D", waspada: "#F4B740", aman: "#21A366" };
 
-export function PetaMap() {
+// koordinat contoh per aset (samakan id dengan data di halaman monitoring)
+const KOORD = {
+  1: [-8.6705, 115.2412],
+  2: [-8.7210, 115.2350],
+  3: [-8.7050, 115.2280],
+  4: [-8.6620, 115.2400],
+};
+
+export function PetaMap({ zona = [] }) {
   const ref = useRef(null);
   const mapRef = useRef(null);
+  const layerRef = useRef(null);
 
+  // buat peta sekali
   useEffect(() => {
-    let map;
     let cancelled = false;
     (async () => {
       const L = (await import("leaflet")).default;
       if (cancelled || !ref.current || mapRef.current) return;
-      map = L.map(ref.current, { scrollWheelZoom: false }).setView([-8.66, 115.22], 12);
+      const map = L.map(ref.current, { scrollWheelZoom: false }).setView([-8.67, 115.22], 12);
       mapRef.current = map;
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; OpenStreetMap · Cuaca: BMKG',
+        attribution: "© OpenStreetMap · Cuaca: BMKG",
         maxZoom: 19,
       }).addTo(map);
+      layerRef.current = L.layerGroup().addTo(map);
+    })();
+    return () => {
+      cancelled = true;
+      if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; }
+    };
+  }, []);
 
-      zones.forEach((z) => {
-        L.circle([z.lat, z.lng], {
-          radius: 1900,
-          color: z.color,
-          fillColor: z.color,
-          fillOpacity: 0.28,
+  // gambar ulang marker setiap kali `zona` (hasil filter) berubah
+  useEffect(() => {
+    (async () => {
+      const L = (await import("leaflet")).default;
+      const layer = layerRef.current;
+      if (!layer) return;
+      layer.clearLayers(); // hapus marker lama → tidak numpuk
+      zona.forEach((z) => {
+        const pos = KOORD[z.id];
+        if (!pos) return;
+        L.circleMarker(pos, {
+          radius: 11,
+          color: WARNA[z.level],
+          fillColor: WARNA[z.level],
+          fillOpacity: 0.85,
           weight: 2,
         })
-          .addTo(map)
+          .addTo(layer)
           .bindPopup(
-            `<div style="font-family:Poppins,sans-serif;min-width:180px">
-               <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-                 <strong style="font-family:Montserrat,sans-serif">${z.name}</strong>
-                 <span style="background:${z.color};color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px">${z.level}</span>
-               </div>
-               <div style="font-size:12px;color:#434655">${z.note}</div>
-               <div style="font-size:10px;color:#747686;margin-top:6px">Sumber: BMKG</div>
-             </div>`
+            `<b style="font-family:Montserrat,sans-serif">${z.nama}</b><br/>
+             <span style="color:${WARNA[z.level]};font-weight:700;text-transform:uppercase">${z.level}</span> · Skor ${z.skor}%<br/>
+             <span style="font-size:12px;color:#5B6B82">${z.ket}</span>`
           );
       });
     })();
-
-    return () => {
-      cancelled = true;
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
-      }
-    };
-  }, []);
+  }, [zona]);
 
   return <div ref={ref} className="h-full w-full" />;
 }

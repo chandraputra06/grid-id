@@ -9,18 +9,18 @@ const groups = [
     items: [
       { icon: "dashboard", label: "Beranda", href: "/dashboard" },
       { icon: "monitoring", label: "Monitoring", href: "/dashboard/monitoring" },
+      { icon: "sort", label: "Prioritas Aset", href: "/dashboard/prioritas" },
       { icon: "description", label: "Laporan", href: "/dashboard/laporan" },
-      { icon: "map", label: "Peta", href: "/dashboard/monitoring" },
-      { icon: "analytics", label: "Analisis", href: "#" },
+      { icon: "analytics", label: "Analisis", href: "/dashboard/analisis" },
     ],
   },
   {
     label: "Ekosistem",
     items: [
-      { icon: "hub", label: "Pemetaan Grid", href: "#" },
-      { icon: "redeem", label: "Program Reward", href: "#" },
-      { icon: "groups", label: "Panel Mitra", href: "#" },
-      { icon: "settings", label: "Pengaturan", href: "#" },
+      { icon: "hub", label: "Pemetaan Grid", href: "/dashboard/pemetaan" },
+      { icon: "redeem", label: "Program Reward", href: "/dashboard/reward" },
+      { icon: "groups", label: "Panel Mitra", href: "/dashboard/mitra" },
+      { icon: "settings", label: "Pengaturan", href: "/dashboard/pengaturan" },
     ],
   },
 ];

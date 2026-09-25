@@ -65,8 +65,8 @@ export default function Landing() {
         <div className="mx-auto flex max-w-[820px] flex-col items-center px-margin-mobile py-24 text-center md:py-28">
           <HeroIn>
             <h1 className="font-heading text-4xl font-extrabold leading-[1.08] tracking-tight text-white md:text-6xl">
-              Ketahui risiko{" "}
-              <span className="text-accent">pemadaman listrik</span> di lokasimu
+              Ketahui resiko {""}
+              <span className="text-accent"> Pemadaman Listrik </span> lokasimu
               sebelum terjadi.
             </h1>
           </HeroIn>

@@ -1,88 +1,96 @@
-const metrics = [
-  { label: "Voltase Rata-rata", value: "148.5", unit: "kV", note: "Ambang normal: 150 kV ±10%", icon: "electric_bolt", tone: "text-brand" },
-  { label: "Beban Puncak", value: "82", unit: "%", note: "Mendekati batas aman", icon: "speed", tone: "text-risk-waspada" },
-  { label: "Suhu Transformator", value: "78", unit: "°C", note: "+5°C dari rata-rata ini", icon: "device_thermostat", tone: "text-risk-kritis" },
+const sumber = [
+  { icon: "photo_camera", tone: "text-brand", title: "Scan Visual (RGB)", body: "YOLOv8: kabel kendur (conf 0.86) + korosi ringan pada terminal.", roadmap: false, box: "border-outline-variant" },
+  { icon: "device_thermostat", tone: "text-risk-kritis", title: "Thermal (titik panas)", body: "Hotspot terminal +18°C dari ambang jenis Trafo 100 kVA.", roadmap: true, box: "border-outline-variant" },
+  { icon: "rainy", tone: "text-risk-waspada", title: "Cuaca BMKG", body: "Prakiraan hujan lebat + angin 32 km/j (3 hari ke depan).", roadmap: false, box: "border-outline-variant" },
+  { icon: "database", tone: "text-accent", title: "Output MAXIMO", body: "Skor: BURUK · pemeliharaan terjadwal 6 bln lagi (tanpa detail %).", roadmap: false, box: "border-accent/40 bg-accent/5" },
 ];
 
-export default function AdminGardu() {
+export default function DetailAset() {
   return (
     <div className="space-y-6">
       <div>
         <p className="flex items-center gap-1 font-body-md text-[13px] text-on-surface-variant">
-          <a href="/dashboard/monitoring" className="hover:text-brand">Monitoring</a>
-          <span className="material-symbols-outlined text-[16px]">chevron_right</span> Gardu Induk Cawang
+          <a href="/dashboard/prioritas" className="hover:text-brand">Prioritas Aset</a>
+          <span className="material-symbols-outlined text-[16px]">chevron_right</span> Trafo TR-104
         </p>
-        <div className="mt-1 flex flex-wrap items-center gap-3">
-          <h1 className="font-heading text-2xl font-extrabold text-on-surface">Gardu Induk Cawang (GI-104)</h1>
-          <span className="rounded-full bg-risk-waspada/15 px-3 py-1 font-heading text-xs font-bold text-risk-waspada">STATUS: WASPADA</span>
-        </div>
-        <p className="font-body-md text-body-md text-on-surface-variant">Monitoring real-time kesehatan sistem &amp; prediksi anomali jaringan.</p>
+        <h1 className="mt-1 font-heading text-2xl font-extrabold text-on-surface">Detail Aset — Trafo TR-104 (Cawang)</h1>
+        <p className="font-body-md text-body-md text-on-surface-variant">Fusion scan + BMKG + thermal + MAXIMO per identitas aset — decision-support untuk PLN.</p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="rounded-2xl border border-outline-variant bg-card-surface p-5 shadow-sm lg:col-span-2">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 font-heading text-lg font-bold"><span className="material-symbols-outlined text-brand">insights</span> Prakiraan Risiko 7 Hari Ke Depan</h2>
-            <span className="rounded-full bg-brand/10 px-2 py-0.5 font-label-sm text-label-sm font-bold text-brand">AI PREDIKSI</span>
-          </div>
-          <p className="font-body-md text-body-md text-on-surface-variant">
-            Berdasarkan analisis tren suhu dan beban, terdapat <span className="font-bold text-risk-kritis">probabilitas 68%</span> terjadinya overheating pada Transformator Unit-2 saat beban puncak pukul 14:00–16:00 dalam 48 jam ke depan.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <button className="flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 font-heading text-sm font-bold text-white transition-transform hover:-translate-y-0.5"><span className="material-symbols-outlined text-[18px]">event</span> Jadwalkan Inspeksi</button>
-            <button className="flex items-center gap-2 rounded-full border border-outline-variant px-5 py-2.5 font-heading text-sm font-bold text-on-surface hover:bg-surface-container-low"><span className="material-symbols-outlined text-[18px]">bar_chart</span> Lihat Detail Model</button>
-          </div>
+      <div className="overflow-hidden rounded-2xl border-2 border-brand bg-card-surface shadow-sm">
+        <div className="flex items-center justify-between bg-brand px-5 py-3 text-white">
+          <h2 className="flex items-center gap-2 font-heading font-extrabold"><span className="material-symbols-outlined">inventory_2</span>Ringkasan Kondisi</h2>
+          <span className="rounded-full bg-white/20 px-3 py-1 text-xs">Prioritas #1 · Kritis</span>
         </div>
-
-        <div className="rounded-2xl border border-outline-variant bg-card-surface p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <h2 className="font-heading text-lg font-bold">Kondisi Cuaca</h2>
-            <span className="rounded-full bg-surface-container-low px-2 py-0.5 font-label-sm text-label-sm text-on-surface-variant">BMKG</span>
-          </div>
-          <div className="mt-4 flex items-center gap-3">
-            <span className="material-symbols-outlined text-5xl text-risk-waspada" style={{ fontVariationSettings: "'FILL' 1" }}>thunderstorm</span>
-            <div>
-              <p className="font-heading text-lg font-bold">Badai Ringan</p>
-              <p className="font-body-md text-[13px] text-on-surface-variant">Curah hujan 45 mm/h · Waspada petir</p>
+        <div className="grid gap-5 p-5 lg:grid-cols-3">
+          <div className="space-y-4">
+            <div className="rounded-xl bg-surface-container-low p-4">
+              <p className="mb-2 font-heading text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Identitas Aset</p>
+              <div className="space-y-1 text-sm">
+                {[["Nama/Kode", "Trafo TR-104"], ["Kapasitas", "100 kVA"], ["Feeder", "Cawang"], ["Koordinat", "-8.6705, 115.2412"]].map(([k, v]) => (
+                  <div key={k} className="flex justify-between"><span className="text-on-surface-variant">{k}</span><b>{v}</b></div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-xl bg-surface-container-low p-4 text-center">
+              <p className="mb-2 font-heading text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Kondisi GRID·ID</p>
+              <div className="relative mx-auto grid h-36 w-36 place-items-center rounded-full" style={{ background: "conic-gradient(#E5484D 0% 78%, #e0e2e7 78% 100%)" }}>
+                <div className="grid h-28 w-28 place-items-center rounded-full bg-card-surface">
+                  <div>
+                    <div className="font-heading text-4xl font-extrabold">78<span className="text-lg">%</span></div>
+                    <div className="text-[11px] text-on-surface-variant">kondisi buruk</div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 inline-flex items-center gap-1 rounded-full bg-risk-kritis/10 px-3 py-1 text-xs font-bold text-risk-kritis">
+                <span className="material-symbols-outlined text-[16px]">warning</span>Toleransi: Tangani &lt; 24 jam
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        {metrics.map((m) => (
-          <div key={m.label} className="rounded-2xl border border-outline-variant bg-card-surface p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="font-heading text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">{m.label}</span>
-              <span className={`material-symbols-outlined ${m.tone}`}>{m.icon}</span>
+          <div className="space-y-4 lg:col-span-2">
+            <p className="font-heading text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Sumber Data yang Digabung (per identitas aset)</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {sumber.map((s) => (
+                <div key={s.title} className={`relative rounded-xl border p-4 ${s.box}`}>
+                  {s.roadmap && <span className="absolute right-3 top-3 rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-bold text-accent">ROADMAP</span>}
+                  <div className="mb-1 flex items-center gap-2">
+                    <span className={`material-symbols-outlined text-[20px] ${s.tone}`}>{s.icon}</span>
+                    <b className="font-heading text-sm">{s.title}</b>
+                  </div>
+                  <p className="font-body-md text-[13px] text-on-surface-variant">{s.body}</p>
+                </div>
+              ))}
             </div>
-            <div className="mt-2 font-heading text-3xl font-extrabold text-on-surface">{m.value}<span className="ml-1 text-base font-bold text-on-surface-variant">{m.unit}</span></div>
-            <p className="mt-1 font-body-md text-[12px] text-on-surface-variant">{m.note}</p>
-          </div>
-        ))}
-      </div>
 
-      <div className="rounded-2xl border border-outline-variant bg-card-surface p-5 shadow-sm">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-heading text-lg font-bold">Tren Kesehatan (24 Jam Terakhir)</h2>
-          <div className="flex rounded-full bg-surface-container-low p-1">
-            <button className="rounded-full bg-brand px-3 py-1 font-heading text-xs font-bold text-white">Suhu</button>
-            <button className="rounded-full px-3 py-1 font-heading text-xs font-bold text-on-surface-variant">Beban</button>
+            <div className="rounded-xl border border-accent/40 bg-accent/5 p-4">
+              <p className="mb-2 flex items-center gap-1 font-heading text-sm font-bold text-accent">
+                <span className="material-symbols-outlined text-[18px]">difference</span>Yang GRID·ID tambahkan (gap MAXIMO)
+              </p>
+              <div className="grid gap-3 text-[13px] sm:grid-cols-2">
+                <div className="rounded-lg bg-card-surface p-3">
+                  <p className="mb-1 text-on-surface-variant">MAXIMO</p>
+                  <p><b>"Buruk"</b> — tanpa persen, tanpa toleransi, tidak bisa mengurutkan prioritas antar-aset.</p>
+                </div>
+                <div className="rounded-lg bg-card-surface p-3">
+                  <p className="mb-1 text-on-surface-variant">GRID·ID</p>
+                  <p><b>78% — Kritis</b>, tangani &lt;24 jam karena <b>kabel kendur + hotspot + cuaca buruk</b> bertumpuk. Prioritas <b>#1</b> dari 1.240 aset.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button className="flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 font-heading text-sm font-bold text-white">
+                <span className="material-symbols-outlined text-[18px]">assignment</span>Terbitkan Work Order
+              </button>
+              <button className="flex items-center gap-2 rounded-full border border-outline-variant px-5 py-2.5 font-heading text-sm font-bold">
+                <span className="material-symbols-outlined text-[18px]">ios_share</span>Ekspor ke MAXIMO
+              </button>
+              <span className="flex items-center gap-1 self-center font-body-md text-[12px] text-on-surface-variant">
+                <span className="material-symbols-outlined text-[16px] text-accent">graphic_eq</span>Roadmap: parameter <b>partial discharge (noise)</b> menyusul.
+              </span>
+            </div>
           </div>
-        </div>
-        <svg viewBox="0 0 800 220" className="h-56 w-full" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="fill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stopColor="#2743d9" stopOpacity="0.18" />
-              <stop offset="1" stopColor="#2743d9" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          {[40, 90, 140, 190].map((y) => <line key={y} x1="0" y1={y} x2="800" y2={y} stroke="#e0e2e7" strokeWidth="1" />)}
-          <path d="M0 170 C 120 150, 180 90, 300 100 S 480 60, 560 70 S 720 150, 800 120" fill="none" stroke="#2743d9" strokeWidth="3" />
-          <path d="M0 170 C 120 150, 180 90, 300 100 S 480 60, 560 70 S 720 150, 800 120 L 800 220 L 0 220 Z" fill="url(#fill)" />
-        </svg>
-        <div className="mt-2 flex justify-between font-label-sm text-label-sm text-on-surface-variant">
-          <span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>Sekarang</span>
         </div>
       </div>
     </div>
