@@ -29,11 +29,7 @@ function Sidebar({ pathname, onNavigate }) {
   return (
     <div className="flex h-full w-64 flex-col bg-[#0f1c3f] text-white/70">
       <div className="flex items-center gap-2.5 border-b border-white/10 px-5 py-4">
-        <svg width="30" height="30" viewBox="0 0 48 48" fill="none">
-          <path d="M24 5c-8.3 0-15 6.3-15 14 0 5.2 2.9 9 5.6 11.7 1 1 1.6 2.1 1.8 3.3h15.2c.2-1.2.8-2.3 1.8-3.3C36.1 28 39 24.2 39 19 39 11.3 32.3 5 24 5Z" stroke="#8ea2f2" strokeWidth="3.2" strokeLinejoin="round" />
-          <path d="M17.5 39.5h13M20 44h8" stroke="#8ea2f2" strokeWidth="3.2" strokeLinecap="round" />
-          <path d="M27 13l-9 12.5h6l-2.5 9L31 22h-6l2-9Z" fill="#F5A623" />
-        </svg>
+        <img src="/grid-logos.png" alt="GRID ID" width="30" height="30" className="shrink-0 object-contain" />
         <div className="leading-tight">
           <div className="font-heading text-lg font-extrabold text-white">GRID<span className="text-accent">·</span>ID</div>
           <div className="font-body-md text-[11px] text-white/45">Infrastruktur Nasional</div>
