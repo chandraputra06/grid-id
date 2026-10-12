@@ -1,3 +1,38 @@
+@keyframes mascot-slide-up {
+  0% { opacity: 0; transform: translateY(100%); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-mascot-pop {
+  animation: mascot-slide-up 0.6s ease-out 0.15s both;
+}
+
+@keyframes glow-fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 0.55; }
+}
+
+.animate-glow-after-pop {
+  animation: glow-fade-in 0.8s ease-out 0.75s both;
+}
+@keyframes mascot-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes quote-fade {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-mascot-bounce {
+  animation: mascot-bounce 1.2s ease-in-out infinite;
+}
+
+.animate-quote-fade {
+  animation: quote-fade 0.5s ease-out both;
+}
+
 @import "tailwindcss";
 
 /* ================= GRID·ID design tokens (v2 — Montserrat/Poppins, blue+amber) ================= */
