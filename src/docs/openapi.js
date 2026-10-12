@@ -40,6 +40,7 @@ module.exports = {
     { name: 'Scan', description: 'AI Screening (foto -> deteksi)' },
     { name: 'Reports', description: 'Laporan warga/petugas' },
     { name: 'Prioritas', description: 'Urutan risiko antar-aset' },
+    { name: 'SPK', description: 'Rekomendasi tindakan (defect -> aksi)' },
   ],
 
   paths: {
@@ -166,6 +167,25 @@ module.exports = {
               ],
             },
           }),
+        },
+      },
+    },
+    '/api/rekomendasi/{assetId}': {
+      get: {
+        tags: ['SPK'],
+        summary: 'Rekomendasi tindakan untuk satu aset (SPK: defect -> aksi)',
+        description:
+          'Ambil deteksi terbaru aset (default 7 hari), petakan tiap kerusakan + severity ke aturan spk_rules, ' +
+          'kembalikan daftar tindakan terurut prioritas. persist=true menyimpan ke tabel recommendations (ditaut ke risk_score terakhir).',
+        parameters: [
+          { name: 'assetId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+          { name: 'window', in: 'query', required: false, schema: { type: 'integer', minimum: 1, maximum: 90, default: 7 }, description: 'Jendela hari deteksi' },
+          { name: 'persist', in: 'query', required: false, schema: { type: 'boolean', default: false }, description: 'Simpan ke tabel recommendations' },
+        ],
+        responses: {
+          200: jsonOk({ $ref: '#/components/schemas/RekomendasiResult' }),
+          400: { $ref: '#/components/responses/Error' },
+          404: { $ref: '#/components/responses/Error' },
         },
       },
     },
@@ -316,6 +336,31 @@ module.exports = {
           fetched_at: { type: 'string', format: 'date-time', nullable: true },
           factors: { oneOf: [{ $ref: '#/components/schemas/WeatherFactors' }, { type: 'null' }] },
           forecast: { type: 'array', items: { $ref: '#/components/schemas/WeatherSlot' } },
+        },
+      },
+      Recommendation: {
+        type: 'object',
+        properties: {
+          defect: { type: 'string', enum: enums.defect },
+          severity: { type: 'number', example: 82 },
+          confidence: { type: 'number', example: 0.88 },
+          count: { type: 'integer', example: 2 },
+          action_text: { type: 'string', example: 'Penggantian/isolasi isolator SEGERA (<=24 jam).' },
+          priority: { type: 'integer', example: 3, description: 'Makin tinggi makin mendesak (1-3)' },
+          rule_id: { type: 'string', format: 'uuid' },
+        },
+      },
+      RekomendasiResult: {
+        type: 'object',
+        properties: {
+          asset: { $ref: '#/components/schemas/Asset' },
+          window_days: { type: 'integer', example: 7 },
+          detections_total: { type: 'integer', example: 3 },
+          defects_found: { type: 'integer', example: 2 },
+          recommendations: { type: 'array', items: { $ref: '#/components/schemas/Recommendation' } },
+          persisted: { type: 'boolean', example: false },
+          risk_score_id: { type: 'string', format: 'uuid', nullable: true },
+          note: { type: 'string', nullable: true },
         },
       },
     },
