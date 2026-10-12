@@ -13,4 +13,5 @@ module.exports = {
   BMKG_BASE_URL: process.env.BMKG_BASE_URL || 'https://api.bmkg.go.id/publik/prakiraan-cuaca',
   WEATHER_CACHE_MINUTES: Number(process.env.WEATHER_CACHE_MINUTES) || 45,
   CORS_ORIGIN: process.env.CORS_ORIGIN || '*',
+  INFERENCE_URL: process.env.INFERENCE_URL || '',
 };

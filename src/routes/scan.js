@@ -2,7 +2,7 @@ const router = require('express').Router();
 const asyncHandler = require('../utils/asyncHandler');
 const ApiError = require('../utils/apiError');
 const supabase = require('../config/supabase');
-const { mockInfer } = require('../lib/inference');
+const { infer } = require('../lib/inferenceClient');
 const { computeForAsset } = require('../lib/riskScore');
 
 // POST /api/scan
@@ -32,10 +32,11 @@ router.post(
     }
 
     // AI Screening (mock) -> detections
-    const infer = mockInfer(report.photo_url);
+        // AI Screening -> detections (via service inference, fallback mock)
+    const results = await infer(report.photo_url);
     let detections = [];
-    if (infer.length) {
-      const rows = infer.map((d) => ({ report_id: report.id, ...d }));
+    if (results.length) {
+      const rows = results.map((d) => ({ report_id: report.id, ...d }));
       const { data, error } = await supabase.from('detections').insert(rows).select();
       if (error) throw new ApiError(500, 'db_error', error.message);
       detections = data;
