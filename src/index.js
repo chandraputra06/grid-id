@@ -11,6 +11,7 @@ app.use(cors({ origin: env.CORS_ORIGIN }));
 app.use(express.json({ limit: '2mb' }));
 app.get('/api/openapi.json', (req, res) => res.json(openapi));
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openapi, { customSiteTitle: 'GRID.ID API Docs' }));
+app.use('/api/rekomendasi', require('./routes/rekomendasi'));
 
 // Routes
 app.use('/api/health', require('./routes/health'));

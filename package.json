@@ -8,7 +8,8 @@
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "seed": "node scripts/seed.js",
-    "smoke:bmkg": "node scripts/smoke-bmkg.js"
+    "smoke:bmkg": "node scripts/smoke-bmkg.js",
+    "seed:spk": "node scripts/seed-spk.js"
   },
   "engines": {
     "node": ">=18"
