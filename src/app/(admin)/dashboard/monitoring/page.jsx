@@ -130,9 +130,9 @@ export default function MonitoringPeta() {
 
       <div className="grid gap-5 lg:grid-cols-3">
         {/* PETA (marker berwarna sesuai filter) */}
-        <div className="relative h-[460px] overflow-hidden rounded-2xl border border-outline-variant lg:col-span-2">
+        <div className="relative h-115 overflow-hidden rounded-2xl border border-outline-variant lg:col-span-2">
           {/* TODO: taruh <PetaMap zona={zona} /> di sini — kirim data terfilter sebagai props */}
-          <div className="relative h-[460px] overflow-hidden rounded-2xl border border-outline-variant lg:col-span-2">
+          <div className="relative h-115 overflow-hidden rounded-2xl border border-outline-variant lg:col-span-2">
             <PetaMap zona={zona} />
           </div>
         </div>

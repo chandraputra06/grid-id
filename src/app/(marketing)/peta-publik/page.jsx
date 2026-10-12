@@ -429,7 +429,7 @@ export default function PetaPublik() {
   ];
 
   return (
-    <section className="relative h-[calc(100vh-80px)] min-h-[560px] overflow-hidden">
+    <section className="relative h-[calc(100vh-80px)] min-h-560px overflow-hidden">
       <style>{`
         @keyframes wlRise { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: translateY(0) } }
         @keyframes wlPop { from { opacity: 0; transform: translateY(20px) scale(.96) } to { opacity: 1; transform: translateY(0) scale(1) } }
@@ -454,7 +454,7 @@ export default function PetaPublik() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="absolute left-3 top-3 z-[500] flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold text-white shadow-lg transition-all hover:-translate-y-0.5 active:scale-95 md:left-6 md:top-6"
+          className="absolute left-3 top-3 z-500 flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold text-white shadow-lg transition-all hover:-translate-y-0.5 active:scale-95 md:left-6 md:top-6"
           style={{ background: GRAD, boxShadow: "0 10px 24px -8px rgba(31,157,85,.8)" }}
         >
           <span className="material-symbols-outlined text-[20px]">list</span> Daftar Laporan
@@ -465,7 +465,7 @@ export default function PetaPublik() {
       {/* ================= OVERLAY ================= */}
       {open && (
         <div
-          className="wl-in absolute inset-x-3 bottom-3 z-[500] flex max-h-[58vh] flex-col overflow-hidden rounded-2xl border border-white/70 bg-white/95 backdrop-blur-md md:inset-x-auto md:bottom-6 md:left-6 md:top-6 md:max-h-none md:w-[396px]"
+          className="wl-in absolute inset-x-3 bottom-3 z-500 flex max-h-[58vh] flex-col overflow-hidden rounded-2xl border border-white/70 bg-white/95 backdrop-blur-md md:inset-x-auto md:bottom-6 md:left-6 md:top-6 md:max-h-none md:w-99"
           style={{ boxShadow: CARD_SHADOW }}
         >
           {/* Header lokasi */}
@@ -556,7 +556,7 @@ export default function PetaPublik() {
                     <div className="wl-in px-2 pb-2">
                       <div className="group relative h-32 overflow-hidden rounded-lg">
                         <Foto l={l} big />
-                        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/50 to-transparent" />
+                        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-linear-to-t from-black/50 to-transparent" />
                         <span className="absolute bottom-1.5 left-2 flex items-center gap-1 text-[10px] font-semibold text-white drop-shadow">
                           <span className="material-symbols-outlined text-[12px]">location_on</span>{l.lokasi}
                         </span>
@@ -622,12 +622,12 @@ export default function PetaPublik() {
           ["near_me", "Jarak", `${detail.jarak.toFixed(1)} km dari ${place}`],
         ];
         return (
-          <div className="fixed inset-0 z-[700] grid place-items-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm" onClick={() => setDetail(null)}>
+          <div className="fixed inset-0 z-700 grid place-items-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm" onClick={() => setDetail(null)}>
             <div className="w-full max-w-lg overflow-hidden rounded-3xl bg-white" style={{ animation: "wlPop .35s cubic-bezier(.16,1,.3,1) both", boxShadow: `0 30px 70px -16px ${m.glow}` }} onClick={(e) => e.stopPropagation()}>
               <div className="group relative h-60">
                 <Foto l={detail} big />
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 to-transparent" />
-                <Badge level={detail.level} className="absolute left-4 top-4 !px-2.5 !py-1 !text-[10px]" />
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-black/60 to-transparent" />
+                <Badge level={detail.level} className="absolute left-4 top-4 px-2.5! py-1! text-2.5!" />
                 <button onClick={() => setDetail(null)} aria-label="Tutup" className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 text-on-surface shadow-md transition-transform hover:scale-110">
                   <span className="material-symbols-outlined text-[20px]">close</span>
                 </button>

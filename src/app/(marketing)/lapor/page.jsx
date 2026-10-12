@@ -184,12 +184,12 @@ export default function Lapor() {
   return (
     <div className="relative isolate min-h-screen bg-[url('/bg-scan.png')] bg-cover bg-center bg-no-repeat">
       {/* Cover gradient biru tua -> biru cerah di atas background image */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-[#0A1F44] to-[#1E90FF] opacity-80" />
+      <div className="absolute inset-0 -z-10 bg-linear-to-br from-[#0A1F44] to-[#1E90FF] opacity-80" />
 
       {/* Loading screen layar penuh (di-portal ke body supaya menutupi navbar juga) */}
       {showLoader &&
         createPortal(
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0A1F44E6] p-5">
+          <div className="fixed inset-0 z-100 flex items-center justify-center bg-[#0A1F44E6] p-5">
             <div className="animate-quote-fade relative w-full max-w-sm rounded-2xl bg-white px-6 pb-6 pt-5 text-center shadow-[0_10px_40px_#00000080]">
               {/* Tombol X */}
               <button
@@ -210,7 +210,7 @@ export default function Lapor() {
               {/* Loading bar */}
               <div className="h-3 w-full overflow-hidden rounded-full bg-[#E0F2FE]">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-[#38BDF8] to-[#0020a1] transition-[width] duration-100 ease-linear"
+                  className="h-full rounded-full bg-linear-to-r from-[#38BDF8] to-[#0020a1] transition-[width] duration-100 ease-linear"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -228,7 +228,7 @@ export default function Lapor() {
       {/* Layar kamera live (layar penuh) dengan animasi buka diafragma */}
       {showCamera &&
         createPortal(
-          <div className="animate-camera-open fixed inset-0 z-[110] flex flex-col bg-[#000000]">
+          <div className="animate-camera-open fixed inset-0 z-110 flex flex-col bg-[#000000]">
             {/* Bar atas */}
             <div className="flex items-center justify-between bg-[#0A1F44] px-4 py-3 text-white">
               <div className="flex items-center gap-2 font-label-bold text-label-bold">
@@ -253,7 +253,7 @@ export default function Lapor() {
                   <button
                     type="button"
                     onClick={() => setRetryKey((k) => k + 1)}
-                    className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#38BDF8] to-[#0020a1] px-6 py-3 font-label-bold text-label-bold text-white shadow-md transition hover:-translate-y-1"
+                    className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-[#38BDF8] to-[#0020a1] px-6 py-3 font-label-bold text-label-bold text-white shadow-md transition hover:-translate-y-1"
                   >
                     <FontAwesomeIcon icon={faRotateLeft} className="h-4 w-4" /> Coba Lagi
                   </button>
@@ -333,10 +333,10 @@ export default function Lapor() {
         </div>
 
         {/* Peringatan Keselamatan */}
-        <div className="group relative mb-6 overflow-hidden rounded-xl border border-[#FCA5A599] bg-gradient-to-r from-white to-[#FECACA] p-4 pr-32 sm:pr-40">
+        <div className="group relative mb-6 overflow-hidden rounded-xl border border-[#FCA5A599] bg-linear-to-r from-white to-[#FECACA] p-4 pr-32 sm:pr-40">
           <div className="relative z-10">
             {/* Capsule: icon + judul */}
-            <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#991B1B] to-[#FF4D4D] px-4 py-1.5 text-white shadow-[0_4px_10px_#DC262659]">
+            <div className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-[#991B1B] to-[#FF4D4D] px-4 py-1.5 text-white shadow-[0_4px_10px_#DC262659]">
               <FontAwesomeIcon icon={faExclamationTriangle} className="h-4 w-4 shrink-0 text-white" />
               <p className="font-label-bold text-label-bold text-white">Peringatan Keselamatan</p>
             </div>
@@ -362,9 +362,9 @@ export default function Lapor() {
         </div>
 
         {/* Card scan */}
-        <div className="overflow-hidden rounded-2xl border border-[#FFFFFF66] bg-gradient-to-br from-[#BAE6FD] to-[#FEF08A] shadow-[0_4px_12px_#0D1B2A26]">
+        <div className="overflow-hidden rounded-2xl border border-[#FFFFFF66] bg-linear-to-br from-[#BAE6FD] to-[#FEF08A] shadow-[0_4px_12px_#0D1B2A26]">
           {/* Header */}
-          <div className="border-b border-[#FFFFFF80] bg-gradient-to-r from-[#BAE6FD] via-[#E0F2FE] to-[#FEF9C3] p-5">
+          <div className="border-b border-[#FFFFFF80] bg-linear-to-r from-[#BAE6FD] via-[#E0F2FE] to-[#FEF9C3] p-5">
             <div className="flex items-center gap-2 font-label-bold text-label-bold text-primary-container">
               <FontAwesomeIcon icon={faCamera} className="h-4 w-4" /> Scan kondisi jaringan
             </div>
@@ -403,7 +403,7 @@ export default function Lapor() {
               >
                 {/* Overlay tipis supaya teks tetap terbaca */}
                 <span className="absolute inset-0 bg-[#FFFFFF66]" />
-                <span className="relative mb-4 grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-[#0369A1] to-[#38BDF8] text-white shadow-[0_6px_14px_#0369A173]">
+                <span className="relative mb-4 grid h-16 w-16 place-items-center rounded-full bg-linear-to-br from-[#0369A1] to-[#38BDF8] text-white shadow-[0_6px_14px_#0369A173]">
                   <FontAwesomeIcon icon={faCamera} className="h-7 w-7" />
                 </span>
                 <span className="relative font-headline-sm text-headline-sm text-[#0369A1]">Buka Kamera untuk Scan</span>
@@ -415,7 +415,7 @@ export default function Lapor() {
               <button
                 type="button"
                 onClick={startLoading}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#38BDF8] to-[#0020a1] py-3.5 font-label-bold text-label-bold text-white shadow-md transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_0_28px_#FACC15D9] hover:drop-shadow-[0_14px_24px_#00000040]"
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-linear-to-r from-[#38BDF8] to-[#0020a1] py-3.5 font-label-bold text-label-bold text-white shadow-md transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_0_28px_#FACC15D9] hover:drop-shadow-[0_14px_24px_#00000040]"
               >
                 <FontAwesomeIcon icon={faImage} className="h-4 w-4" /> Pilih Foto dari Galeri
               </button>

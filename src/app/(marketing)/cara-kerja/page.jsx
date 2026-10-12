@@ -21,10 +21,27 @@ const pipeline = [
 ];
 
 const formula = [
- { label: "Kerusakan visual", pct: 45, icon: "/icon-kerusakan.png", from: "#0a60ff", to: "#34aaff" },
-  { label: "Kerusakan visual", pct: 45, icon: "/icon-kerusakan.png", from: "#0a60ff", to: "#34aaff" },
-  { label: "Cuaca (Data BMKG)", pct: 35, icon: "/icon-cuaca.png", from: "#f5a623", to: "#ffd23f" },
-  { label: "Kepadatan laporan", pct: 25, icon: "/icon-kepadatan.png", from: "#16a34a", to: "#4ade80" },
+  {
+    label: "Kerusakan visual",
+    pct: 45,
+    icon: "/icon-kerusakan.png",
+    from: "#0a60ff",
+    to: "#34aaff",
+  },
+  {
+    label: "Cuaca (Data BMKG)",
+    pct: 35,
+    icon: "/icon-cuaca.png",
+    from: "#f5a623",
+    to: "#ffd23f",
+  },
+  {
+    label: "Kepadatan laporan",
+    pct: 25,
+    icon: "/icon-kepadatan.png",
+    from: "#16a34a",
+    to: "#4ade80",
+  },
 ];
 
 const weather = [
@@ -36,7 +53,7 @@ const weather = [
 export default function CaraKerja() {
   return (
     <>
-      {/* Hero */}
+  {/* Hero */}
   <section className="relative isolate overflow-hidden">
   {/* Background image */}
   <div
@@ -44,9 +61,9 @@ export default function CaraKerja() {
     style={{ backgroundImage: "url('/hero-alurkerja.png')" }}
   />
   {/* Overlay gradasi biru transparan */}
-  <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#00278d] via-[#3e6ad8] to-[#34aaff] opacity-90" />
+  <div className="absolute inset-0 -z-10 bg-linear-to-r from-[#00278d] via-[#3e6ad8] to-[#34aaff] opacity-90" />
 
-  <div className="mx-auto grid max-w-[1120px] grid-cols-1 items-center gap-10 px-margin-mobile py-20 md:grid-cols-2 md:py-28">
+  <div className="mx-auto grid max-w-280 grid-cols-1 items-center gap-10 px-margin-mobile py-20 md:grid-cols-2 md:py-10">
     {/* Kolom kiri: teks rata kiri */}
     <div className="flex flex-col items-start text-left">
       <HeroIn>
@@ -74,24 +91,24 @@ export default function CaraKerja() {
     {/* Kolom kanan: maskot */}
     <HeroIn delay={0.36} className="flex justify-center md:justify-end">
       <img
-        src="/maskor-alurkerja.png"
+        src="/maskot-berdua.png"
         alt="Maskot GRID·ID"
-        className="w-56 drop-shadow-[0_16px_32px_#00000059] sm:w-72 md:w-full md:max-w-[450px]"
+        className="w-56 drop-shadow-[0_16px_32px_#00000059] sm:w-72 md:w-full md:max-w-112.5"
       />
     </HeroIn>
   </div>
 </section>
 
       {/* Pipeline */}
-<section className="bg-gradient-to-b from-[#ffffff] to-[#fffbe4] py-24">
-  <div className="mx-auto max-w-[1200px] px-gutter">
+<section className="bg-linear-to-b from-[#ffffff] to-[#fffbe4] py-24">
+  <div className="mx-auto max-w-300 px-gutter">
 <Reveal>
-  <h2 className="mx-auto mb-16 w-fit bg-gradient-to-br from-blue-950 to-blue-600 bg-clip-text pb-1 text-center font-headline-md text-headline-md text-transparent">
+  <h2 className="mx-auto mb-16 w-fit bg-linear-to-br from-blue-950 to-blue-600 bg-clip-text pb-1 text-center font-headline-md text-headline-md text-transparent">
     Alur Kerja
   </h2>
 </Reveal>    <div className="relative flex flex-col items-start justify-between md:flex-row md:items-start">
       {/* Garis penghubung: kanan (biru tua) -> kiri (kuning-orange) */}
-      <div className="absolute left-[12.5%] right-[12.5%] top-10 z-0 hidden h-1 -translate-y-1/2 rounded-full bg-gradient-to-l from-[#00278d] via-[#3e6ad8] to-[#ffc42d] md:block" />
+      <div className="absolute left-[12.5%] right-[12.5%] top-10 z-0 hidden h-1 -translate-y-1/2 rounded-full bg-linear-to-l from-[#00278d] via-[#3e6ad8] to-[#ffc42d] md:block" />
 
       {pipeline.map((s, i) => {
         const col = stepColors[i];
@@ -122,31 +139,32 @@ export default function CaraKerja() {
 </section>
 
       {/* Transparent formula + why weather */}
-    <section className="bg-gradient-to-b from-[#fffbe4] to-[#ffffff]">
-  <div className="mx-auto grid max-w-[1200px] grid-cols-1 gap-12 px-gutter py-24 lg:grid-cols-12">
-    <Reveal className="lg:col-span-5">
-      <div className="rounded-2xl border-1 border-[#fdd32c] bg-gradient-to-b from-[#ffffff] to-[#fafdff] p-8 shadow-[1px_3px_10px_-2px_#0D1B2A40]">
-<h2 className="mb-4 bg-gradient-to-r from-[#3d62f7] to-[#32e0ff] bg-clip-text font-headline-md text-headline-md text-transparent">
-  Skor Risiko yang bisa dijelaskan
-</h2>        <p className="mb-6 font-body-md text-body-md text-black">
-          Setiap skor disusun transparan (bukan black-box) berdasarkan tiga pilar data utama.
-        </p>
-        <div className="space-y-5">
-          {formula.map((f) => (
-            <div key={f.label}>
-              <div className="mb-2 flex items-center justify-between font-label-sm text-label-sm">
-                <div className="flex items-center gap-3">
-                  {/* Icon: kotak gradasi sesuai warna bar */}
-                  <div
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full shadow-md"
-                    style={{ backgroundImage: `linear-gradient(135deg, ${f.from}, ${f.to})` }}
-                  >
-                    <img src={f.icon} alt="" className="h-7 w-7 object-contain" />
+    <section className="bg-linear-to-b from-[#fffbe4] to-[#ffffff]">
+       <div className="mx-auto grid max-w-300 grid-cols-1 gap-12 px-gutter py-24 lg:grid-cols-12">
+         <Reveal className="lg:col-span-5">
+           <div className="rounded-2xl border border-[#fdd32c] bg-linear-to-b from-[#ffffff] to-[#fafdff] p-8 shadow-[1px_3px_10px_-2px_#0D1B2A40]">
+              <h2 className="mb-4 bg-linear-to-r from-[#3d62f7] to-[#32e0ff] bg-clip-text font-headline-md text-headline-md text-transparent">
+               Skor Risiko yang bisa dijelaskan
+              </h2>        
+                <p className="mb-6 font-body-md text-body-md text-black">
+                Setiap skor disusun transparan (bukan black-box) berdasarkan tiga pilar data utama.
+                 </p>
+            <div className="space-y-5">
+              {formula.map((f) => (
+                <div key={f.label}>
+                  <div className="mb-2 flex items-center justify-between font-label-sm text-label-sm">
+                    <div className="flex items-center gap-3">
+                      {/* Icon: kotak gradasi sesuai warna bar */}
+                      <div
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full shadow-md"
+                        style={{ backgroundImage: `linear-gradient(135deg, ${f.from}, ${f.to})` }}
+                      >
+                        <img src={f.icon} alt="" className="h-7 w-7 object-contain" />
+                      </div>
+                      <span>{f.label}</span>
+                    </div>
+                    <span className="font-bold" style={{ color: f.from }}>{f.pct}%</span>
                   </div>
-                  <span>{f.label}</span>
-                </div>
-                <span className="font-bold" style={{ color: f.from }}>{f.pct}%</span>
-              </div>
 
               {/* Track */}
               <div className="relative w-full overflow-hidden rounded-full bg-surface-container" style={{ height: 8 }}>
@@ -175,7 +193,7 @@ export default function CaraKerja() {
 
    <div className="lg:col-span-7">
   <Reveal>
-    <h2 className="mb-7 w-fit bg-gradient-to-r from-[#3e6ad8] to-[#f5a623] bg-clip-text pb-1 font-headline-md text-headline-md text-transparent">
+    <h2 className="mb-7 w-fit bg-linear-to-r from-[#3e6ad8] to-[#f5a623] bg-clip-text pb-1 font-headline-md text-headline-md text-transparent">
       Mengapa Cuaca Penting?
     </h2>
   </Reveal>
@@ -189,7 +207,7 @@ export default function CaraKerja() {
             style={{ backgroundImage: "url('/weather-card.png')" }}
           />
           {/* Layer 2: overlay gradasi biru tua -> biru muda */}
-          <div className="absolute inset-0 -z-10 bg-gradient-to-br from-[#00278dD9] to-[#1da5ffa6]" />
+          <div className="absolute inset-0 -z-10 bg-linear-to-br from-[#00278dD9] to-[#1da5ffa6]" />
 
           {/* Icon kuning */}
           <FontAwesomeIcon icon={c.icon} className="mb-4 h-6 w-6 text-[#FFC42D]" />
@@ -211,9 +229,9 @@ export default function CaraKerja() {
     style={{ backgroundImage: "url('/bg-deteksi.png')" }}
   />
   {/* Layer 2: overlay putih -> biru primary-container */}
-  <div className="absolute inset-0 -z-10 bg-gradient-to-br from-white/90 via-white/60 to-primary-container/40" />
+  <div className="absolute inset-0 -z-10 bg-linear-to-br from-white/90 via-white/60 to-primary-container/40" />
 
-  <div className="mx-auto grid max-w-[1200px] grid-cols-1 items-center gap-12 px-gutter md:grid-cols-2">
+  <div className="mx-auto grid max-w-300 grid-cols-1 items-center gap-12 px-gutter md:grid-cols-2">
     <Reveal>
       <h2 className="mb-6 font-headline-lg-mobile text-headline-lg-mobile text-primary-container md:font-headline-lg md:text-headline-lg">
         Deteksi dini dihargai lebih tinggi
@@ -226,7 +244,7 @@ export default function CaraKerja() {
         {["Mencegah kerusakan eskalatif", "Mengoptimalkan rute teknisi lapangan"].map((t) => (
           <li
             key={t}
-            className="flex w-fit items-center gap-3 rounded-full bg-gradient-to-r from-[#ffd23f] to-[#f5873a] px-6 py-3 font-semibold text-[#1a1a1a] shadow-[0_6px_16px_-2px_#F5873A80,0_0_22px_#FFC42D80]"
+            className="flex w-fit items-center gap-3 rounded-full bg-linear-to-r from-[#ffd23f] to-[#f5873a] px-6 py-3 font-semibold text-[#1a1a1a] shadow-[0_6px_16px_-2px_#F5873A80,0_0_22px_#FFC42D80]"
           >
             <FontAwesomeIcon icon={faCheckCircle} className="h-4 w-4 shrink-0 text-white drop-shadow-[0_1px_2px_#00000040]" />
             {t}
@@ -269,7 +287,7 @@ export default function CaraKerja() {
 </section>
 
       {/* CTA */}
- <section className="relative isolate overflow-hidden bg-gradient-to-r from-primary-container to-blue-900 py-24 text-on-primary-container">
+ <section className="relative isolate overflow-hidden bg-linear-to-r from-primary-container to-blue-900 py-24 text-on-primary-container">
   {/* Background image (atur transparansi lewat opacity-*) */}
   <div
     className="absolute inset-0 -z-10 bg-cover bg-center opacity-5"
@@ -292,7 +310,7 @@ export default function CaraKerja() {
 
   <div className="relative mx-auto max-w-3xl px-gutter text-center">
     <Reveal>
-      <h2 className="mx-auto mb-6 w-fit bg-gradient-to-r from-[#fff388] to-[#ffd04d] bg-clip-text pb-1 font-headline-lg-mobile text-headline-lg-mobile text-transparent drop-shadow-[0_0_8px_#FFF3A399] drop-shadow-[0_0_18px_#FFE14D4D] md:font-headline-lg md:text-headline-lg">
+      <h2 className="mx-auto mb-6 w-fit bg-linear-to-r from-[#fff388] to-[#ffd04d] bg-clip-text pb-1 font-headline-lg-mobile text-headline-lg-mobile text-transparent drop-shadow-[0_0_8px_#FFF3A399] md:font-headline-lg md:text-headline-lg">
         Siap melindungi wilayahmu?
       </h2>
     </Reveal>

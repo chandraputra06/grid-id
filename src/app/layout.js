@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "GRID·ID — Prediksi Risiko Pemadaman Listrik",
+  title: "GRID·ID",
   description:
     "Lapisan kecerdasan AI untuk infrastruktur ketenagalistrikan. Prediksi risiko dari foto warga + prakiraan cuaca resmi BMKG.",
   icons: {
