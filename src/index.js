@@ -12,6 +12,7 @@ app.use(express.json({ limit: '2mb' }));
 app.get('/api/openapi.json', (req, res) => res.json(openapi));
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openapi, { customSiteTitle: 'GRID.ID API Docs' }));
 app.use('/api/rekomendasi', require('./routes/rekomendasi'));
+app.use('/api/dashboard', require('./routes/dashboard'));
 
 // Routes
 app.use('/api/health', require('./routes/health'));
