@@ -31,6 +31,7 @@ app.use('/api/dashboard', requireAuth, requireRole('admin', 'petugas'), require(
 app.use('/api/prioritas', requireAuth, requireRole('admin', 'petugas'), require('./routes/prioritas'));
 app.use('/api/rekomendasi', requireAuth, requireRole('admin', 'petugas'), require('./routes/rekomendasi'));
 app.use('/api/detections', requireAuth, requireRole('admin', 'petugas'), require('./routes/detections'));
+app.use('/api/dataset', requireAuth, requireRole('admin', 'petugas'), require('./routes/dataset'));
 
 // 404 + error handler (harus paling bawah)
 app.use(notFound);
