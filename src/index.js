@@ -24,6 +24,7 @@ app.use('/api/me', requireAuth, require('./routes/me'));
 app.use('/api/assets', requireAuth, require('./routes/assets'));
 app.use('/api/reports', requireAuth, require('./routes/reports'));
 app.use('/api/scan', requireAuth, require('./routes/scan'));
+app.use('/api/uploads', requireAuth, require('./routes/uploads'));
 
 // Admin + Petugas saja
 app.use('/api/dashboard', requireAuth, requireRole('admin', 'petugas'), require('./routes/dashboard'));
