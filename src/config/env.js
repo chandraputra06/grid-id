@@ -14,4 +14,5 @@ module.exports = {
   WEATHER_CACHE_MINUTES: Number(process.env.WEATHER_CACHE_MINUTES) || 45,
   CORS_ORIGIN: process.env.CORS_ORIGIN || '*',
   INFERENCE_URL: process.env.INFERENCE_URL || '',
+  SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || 'sb_publishable_D2TsrWhsQJIMdw9CGJ0NVA_Myu5OSdA',
 };
