@@ -30,6 +30,7 @@ app.use('/api/uploads', requireAuth, require('./routes/uploads'));
 app.use('/api/dashboard', requireAuth, requireRole('admin', 'petugas'), require('./routes/dashboard'));
 app.use('/api/prioritas', requireAuth, requireRole('admin', 'petugas'), require('./routes/prioritas'));
 app.use('/api/rekomendasi', requireAuth, requireRole('admin', 'petugas'), require('./routes/rekomendasi'));
+app.use('/api/detections', requireAuth, requireRole('admin', 'petugas'), require('./routes/detections'));
 
 // 404 + error handler (harus paling bawah)
 app.use(notFound);

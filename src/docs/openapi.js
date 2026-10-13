@@ -44,6 +44,8 @@ module.exports = {
     { name: 'SPK', description: 'Rekomendasi tindakan (defect -> aksi)' },
     { name: 'Dashboard', description: 'Ringkasan & data peta' },
     { name: 'Auth', description: 'Autentikasi & profil (Supabase Auth)' },
+    { name: 'Uploads', description: 'Upload foto ke Storage' },
+    { name: 'Detections', description: 'Verifikasi deteksi (label training)' },
   ],
 
   paths: {
@@ -236,6 +238,87 @@ module.exports = {
         responses: {
           200: jsonOk({ $ref: '#/components/schemas/Profile' }),
           401: { $ref: '#/components/responses/Error' },
+        },
+      },
+    },
+    '/api/uploads/sign': {
+      post: {
+        tags: ['Uploads'],
+        summary: 'Minta signed upload URL untuk foto (upload langsung ke Storage)',
+        description:
+          'Alur: (1) POST sign -> dapat {path, token, public_url}; ' +
+          '(2) frontend: supabase.storage.from(bucket).uploadToSignedUrl(path, token, file); ' +
+          '(3) POST /api/reports { photo_url: public_url }.',
+        requestBody: {
+          required: false,
+          content: { 'application/json': { schema: {
+            type: 'object',
+            properties: { ext: { type: 'string', enum: ['jpg', 'jpeg', 'png', 'webp'], default: 'jpg' } },
+          } } },
+        },
+        responses: {
+          200: jsonOk({ $ref: '#/components/schemas/SignUploadResult' }),
+          400: { $ref: '#/components/responses/Error' },
+        },
+      },
+    },
+    '/api/detections': {
+      get: {
+        tags: ['Detections'],
+        summary: 'Daftar deteksi (antrean review). Filter: verified=true|false',
+        parameters: [
+          { name: 'verified', in: 'query', required: false, schema: { type: 'string', enum: ['true', 'false'] } },
+          { name: 'limit', in: 'query', required: false, schema: { type: 'integer', minimum: 1, maximum: 500, default: 100 } },
+        ],
+        responses: {
+          200: jsonOk({ type: 'array', items: { $ref: '#/components/schemas/Detection' } }),
+        },
+      },
+      post: {
+        tags: ['Detections'],
+        summary: 'Tambah deteksi manual (label yang dilewatkan model). verified=true.',
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: {
+            type: 'object',
+            required: ['report_id', 'defect'],
+            properties: {
+              report_id: { type: 'string', format: 'uuid' },
+              defect: { type: 'string', enum: enums.defect },
+              severity: { type: 'number', default: 70 },
+              bbox: { type: 'object', nullable: true, example: { x: 0.2, y: 0.3, w: 0.2, h: 0.2 } },
+              confidence: { type: 'number', default: 1 },
+            },
+          } } },
+        },
+        responses: {
+          201: jsonOk({ $ref: '#/components/schemas/Detection' }, 'Created'),
+          400: { $ref: '#/components/responses/Error' },
+        },
+      },
+    },
+
+    '/api/detections/{id}/verify': {
+      patch: {
+        tags: ['Detections'],
+        summary: 'Konfirmasi/koreksi deteksi lalu tandai verified (label emas untuk training)',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        requestBody: {
+          required: false,
+          content: { 'application/json': { schema: {
+            type: 'object',
+            properties: {
+              verified: { type: 'boolean', default: true },
+              defect: { type: 'string', enum: enums.defect, description: 'Koreksi kelas (opsional)' },
+              severity: { type: 'number', description: 'Koreksi severity 0-100 (opsional)' },
+              bbox: { type: 'object', description: 'Koreksi bbox (opsional)' },
+            },
+          } } },
+        },
+        responses: {
+          200: jsonOk({ $ref: '#/components/schemas/Detection' }),
+          400: { $ref: '#/components/responses/Error' },
+          404: { $ref: '#/components/responses/Error' },
         },
       },
     },
@@ -500,6 +583,16 @@ module.exports = {
           full_name: { type: 'string', nullable: true, example: 'Petugas Lapangan' },
           phone: { type: 'string', nullable: true },
           unit: { type: 'string', nullable: true },
+        },
+      },
+      SignUploadResult: {
+        type: 'object',
+        properties: {
+          bucket: { type: 'string', example: 'report-photos' },
+          path: { type: 'string', example: '<user_id>/1699999999-uuid.jpg' },
+          token: { type: 'string', description: 'Token utk uploadToSignedUrl' },
+          signed_url: { type: 'string' },
+          public_url: { type: 'string', example: 'https://<proj>.supabase.co/storage/v1/object/public/report-photos/...' },
         },
       },
     },
