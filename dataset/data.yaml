@@ -1,0 +1,5 @@
+path: /Users/chandraputra/Developer/Lomba/grid-id-backend/dataset
+train: images
+val: images
+nc: 4
+names: ['isolator_pecah', 'korosi', 'kabel_bermasalah', 'komponen_hilang']
