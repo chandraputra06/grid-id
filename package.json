@@ -9,7 +9,8 @@
     "start": "node src/index.js",
     "seed": "node scripts/seed.js",
     "smoke:bmkg": "node scripts/smoke-bmkg.js",
-    "seed:spk": "node scripts/seed-spk.js"
+    "seed:spk": "node scripts/seed-spk.js",
+    "seed:users": "node scripts/seed-users.js"
   },
   "engines": {
     "node": ">=18"

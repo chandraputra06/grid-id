@@ -33,6 +33,7 @@ module.exports = {
       'Panduan frontend: selalu cek `ok` dulu. Panggil backend ini, BUKAN Supabase langsung (RLS memblokir anon).',
   },
   servers: [{ url: 'http://localhost:4000', description: 'Dev lokal' }],
+  security: [{ bearerAuth: [] }],
   tags: [
     { name: 'Health', description: 'Status service' },
     { name: 'Cuaca', description: 'Prakiraan BMKG (cache-first)' },
@@ -41,6 +42,8 @@ module.exports = {
     { name: 'Reports', description: 'Laporan warga/petugas' },
     { name: 'Prioritas', description: 'Urutan risiko antar-aset' },
     { name: 'SPK', description: 'Rekomendasi tindakan (defect -> aksi)' },
+    { name: 'Dashboard', description: 'Ringkasan & data peta' },
+    { name: 'Auth', description: 'Autentikasi & profil (Supabase Auth)' },
   ],
 
   paths: {
@@ -48,6 +51,7 @@ module.exports = {
       get: {
         tags: ['Health'],
         summary: 'Cek service & koneksi DB',
+        security: [],
         responses: {
           200: jsonOk({
             type: 'object',
@@ -66,6 +70,7 @@ module.exports = {
       get: {
         tags: ['Cuaca'],
         summary: 'Prakiraan cuaca BMKG untuk satu wilayah (adm4)',
+        security: [],
         parameters: [
           { name: 'adm4', in: 'query', required: true, schema: { type: 'string', example: '51.71.01.2008' }, description: 'Kode desa/kelurahan BMKG' },
           { name: 'horizon', in: 'query', required: false, schema: { type: 'integer', minimum: 3, maximum: 72, default: 24 }, description: 'Jendela jam untuk ringkasan faktor' },
@@ -189,9 +194,57 @@ module.exports = {
         },
       },
     },
+    '/api/dashboard': {
+      get: {
+        tags: ['Dashboard'],
+        summary: 'Ringkasan angka untuk landing (hitung skor semua aset secara fresh)',
+        responses: { 200: jsonOk({ $ref: '#/components/schemas/DashboardSummary' }) },
+      },
+    },
+
+    '/api/dashboard/geojson': {
+      get: {
+        tags: ['Dashboard'],
+        summary: 'Semua aset sebagai GeoJSON FeatureCollection (peta Leaflet)',
+        description: 'FeatureCollection ada di field data (bukan root). Frontend: L.geoJSON(resp.data). properties.level untuk warna marker.',
+        responses: { 200: jsonOk({ $ref: '#/components/schemas/GeoJSONFeatureCollection' }) },
+      },
+    },
+    '/api/me': {
+      get: {
+        tags: ['Auth'],
+        summary: 'Profil user yang sedang login',
+        responses: {
+          200: jsonOk({ $ref: '#/components/schemas/Profile' }),
+          401: { $ref: '#/components/responses/Error' },
+        },
+      },
+      patch: {
+        tags: ['Auth'],
+        summary: 'Update profil sendiri (full_name, phone, unit)',
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: {
+            type: 'object',
+            properties: {
+              full_name: { type: 'string', example: 'Budi Santoso' },
+              phone: { type: 'string', example: '08123456789' },
+              unit: { type: 'string', example: 'UP3 Bali Selatan' },
+            },
+          } } },
+        },
+        responses: {
+          200: jsonOk({ $ref: '#/components/schemas/Profile' }),
+          401: { $ref: '#/components/responses/Error' },
+        },
+      },
+    },
   },
 
   components: {
+    securitySchemes: {
+      bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+    },
     responses: {
       Error: { description: 'Error', content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorEnvelope' } } } },
     },
@@ -361,6 +414,92 @@ module.exports = {
           persisted: { type: 'boolean', example: false },
           risk_score_id: { type: 'string', format: 'uuid', nullable: true },
           note: { type: 'string', nullable: true },
+        },
+      },
+      DashboardSummary: {
+        type: 'object',
+        properties: {
+          total_aset: { type: 'integer', example: 5 },
+          by_level: {
+            type: 'object',
+            properties: {
+              kritis: { type: 'integer', example: 1 },
+              waspada: { type: 'integer', example: 2 },
+              aman: { type: 'integer', example: 2 },
+            },
+          },
+          aset_terkritis: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                asset_id: { type: 'string', format: 'uuid' },
+                asset_code: { type: 'string', example: 'GD-PMG-07' },
+                name: { type: 'string' },
+                score: { type: 'number', example: 76.5 },
+                level: { type: 'string', enum: enums.risk_level },
+              },
+            },
+          },
+          laporan: {
+            type: 'object',
+            properties: {
+              total: { type: 'integer', example: 12 },
+              baru: { type: 'integer', example: 4 },
+              diproses: { type: 'integer', example: 3 },
+              terverifikasi: { type: 'integer', example: 4 },
+              ditolak: { type: 'integer', example: 1 },
+            },
+          },
+          deteksi_7hari: { type: 'integer', example: 8 },
+          generated_at: { type: 'string', format: 'date-time' },
+        },
+      },
+      GeoJSONFeatureCollection: {
+        type: 'object',
+        properties: {
+          type: { type: 'string', example: 'FeatureCollection' },
+          features: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                type: { type: 'string', example: 'Feature' },
+                geometry: {
+                  type: 'object',
+                  properties: {
+                    type: { type: 'string', example: 'Point' },
+                    coordinates: { type: 'array', items: { type: 'number' }, example: [115.2, -8.7085] },
+                  },
+                },
+                properties: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string', format: 'uuid' },
+                    asset_code: { type: 'string', example: 'GD-PMG-07' },
+                    name: { type: 'string' },
+                    asset_type: { type: 'string' },
+                    unit: { type: 'string' },
+                    criticality: { type: 'string' },
+                    adm4: { type: 'string' },
+                    score: { type: 'number', nullable: true, example: 76.5 },
+                    level: { type: 'string', enum: enums.risk_level, nullable: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      Profile: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          email: { type: 'string', example: 'petugas@grid.id' },
+          role: { type: 'string', enum: ['admin', 'petugas', 'warga'], example: 'petugas' },
+          full_name: { type: 'string', nullable: true, example: 'Petugas Lapangan' },
+          phone: { type: 'string', nullable: true },
+          unit: { type: 'string', nullable: true },
         },
       },
     },
