@@ -83,7 +83,7 @@ function TransitionOverlay({ text }) {
   }, []);
 
   return (
-    <div className="no-motion fixed inset-0 z-[100] grid place-items-center overflow-hidden" style={{ background: GRAD_135, animation: "wlFade 0.4s ease-out both" }}>
+    <div className="no-motion fixed inset-0 z-100 grid place-items-center overflow-hidden" style={{ background: GRAD_135, animation: "wlFade 0.4s ease-out both" }}>
       {/* Titik cahaya berkelip */}
       {[["12%", "20%", "0s"], ["82%", "16%", ".4s"], ["20%", "78%", ".8s"], ["88%", "70%", ".2s"], ["50%", "10%", ".6s"]].map(([l, tp, d], i) => (
         <span key={i} className="absolute h-3 w-3 rounded-full bg-[#FEF08A] blur-[1px]" style={{ left: l, top: tp, animation: `wlSpark 1.4s ease-in-out ${d} infinite` }} />
@@ -109,7 +109,7 @@ function TransitionOverlay({ text }) {
           <img
             src="/maskot-semangat.png"
             alt="GRID.ID"
-            className="relative h-44 w-auto object-contain drop-shadow-[0_14px_20px_rgba(0,0,0,0.35)] drop-shadow-[0_0_22px_rgba(254,240,138,0.75)]"
+            className="relative h-44 w-auto object-contain drop-shadow-[0_14px_20px_rgba(0,0,0,0.35)]"
             style={{ transformOrigin: "50% 100%", animation: "wlBounce 1.1s ease-in-out 0.9s infinite" }}
           />
           <div className="mx-auto -mt-1 h-3 w-24 rounded-full bg-black/30 blur-sm" style={{ animation: "wlShadow 1.1s ease-in-out 0.9s infinite" }} />
@@ -119,13 +119,13 @@ function TransitionOverlay({ text }) {
 
         {/* Progress bar */}
         <div className="relative mt-4 h-2.5 w-64 rounded-full bg-white/25 shadow-[inset_0_1px_3px_rgba(0,0,0,0.2)]">
-          <div className="relative h-full rounded-full bg-gradient-to-r from-white to-[#FEF08A] shadow-[0_0_14px_rgba(255,255,255,0.9)]" style={{ animation: `wlBar ${(LOAD_MS - 400) / 1000}s ease-in-out 0.3s both` }}>
+          <div className="relative h-full rounded-full bg-linear-to-r from-white to-[#FEF08A] shadow-[0_0_14px_rgba(255,255,255,0.9)]" style={{ animation: `wlBar ${(LOAD_MS - 400) / 1000}s ease-in-out 0.3s both` }}>
             <span className="absolute -right-1.5 top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-white shadow-[0_0_14px_4px_rgba(254,240,138,0.95)]" style={{ animation: "wlSpark 0.8s ease-in-out infinite" }} />
           </div>
         </div>
 
         {/* Quotes berganti-ganti */}
-        <div className="mt-6 flex min-h-[64px] w-72 max-w-full items-center justify-center rounded-2xl bg-white/15 px-4 py-3 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.3)] backdrop-blur-sm">
+        <div className="mt-6 flex min-h-16 w-72 max-w-full items-center justify-center rounded-2xl bg-white/15 px-4 py-3 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.3)] backdrop-blur-sm">
           <p key={q} className="text-sm font-medium italic leading-snug text-white" style={{ animation: `wlQuote ${QUOTE_MS}ms ease-in-out both` }}>
             <span className="material-symbols-outlined mr-1 align-middle text-[16px] text-[#FEF08A]" style={{ fontVariationSettings: "'FILL' 1" }}>format_quote</span>
             {QUOTES[q]}
@@ -274,6 +274,14 @@ export default function Wilayah() {
     };
   }, [resolveAt]);
 
+  /* ---------- Jaga peta tetap pas saat ukuran layout berubah ---------- */
+  useEffect(() => {
+    if (!mapReady || !mapEl.current) return;
+    const ro = new ResizeObserver(() => mapRef.current?.invalidateSize());
+    ro.observe(mapEl.current);
+    return () => ro.disconnect();
+  }, [mapReady]);
+
   /* ---------- Cari wilayah (debounce) ---------- */
   useEffect(() => {
     const q = query.trim();
@@ -410,116 +418,122 @@ export default function Wilayah() {
 
       <div className="relative z-10 grid min-h-full place-items-center px-4 py-10">
         <div
-          className="no-motion w-full max-w-md rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_24px_60px_-12px_rgba(31,157,85,0.45)] backdrop-blur-md sm:p-8"
+          className="no-motion grid w-full max-w-5xl overflow-hidden rounded-3xl border border-white/70 bg-white/90 shadow-[0_24px_60px_-12px_rgba(31,157,85,0.45)] backdrop-blur-md md:grid-cols-[1.15fr_1fr] md:grid-rows-[auto_1fr_auto]"
           style={{ animation: "wlCard 0.9s cubic-bezier(.16,1,.3,1) both" }}
         >
-          <div className="text-center" style={rise(0)}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/grid-logos.png" alt="GRID.ID" className="mx-auto mb-3 h-10 w-auto object-contain" />
-            <h1 className="font-headline-sm text-headline-sm">Pilih wilayahmu</h1>
-            <p className="mt-1 font-body-md text-body-md text-on-surface-variant">
-              Geser peta Bali sampai pin tepat di lokasimu. Zoom untuk lihat desa &amp; banjar.
-            </p>
-          </div>
-
-          {/* Cari */}
-          <div className="relative mt-5" style={rise(1)}>
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-outline">search</span>
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Cari kabupaten, kecamatan, desa, atau banjar"
-              className="fld w-full rounded-xl border border-outline-variant bg-white/80 py-2.5 pl-10 pr-10 font-body-md text-body-md outline-none transition-all"
-            />
-            {searching && (
-              <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-[18px] text-[#1F9D55]">progress_activity</span>
-            )}
-          </div>
-
-          {/* Hasil pencarian + GPS */}
-          <div className="mt-3 overflow-hidden rounded-xl border border-outline-variant bg-white/70" style={rise(2)}>
-            {query.trim().length >= 3 && !searching && results.length === 0 && (
-              <p className="p-3 text-center font-label-sm text-label-sm text-on-surface-variant">Wilayah tidak ditemukan. Coba geser peta.</p>
-            )}
-            {results.map((r) => {
-              const a = parseAdmin(r.address);
-              const title = r.name || r.display_name.split(",")[0];
-              const sub = [a.desa, a.kecamatan, a.kabupaten].filter(Boolean).join(", ");
-              return (
-                <button
-                  key={r.place_id}
-                  onClick={() => pickResult(r)}
-                  className="flex w-full items-center gap-3 border-b border-outline-variant/60 p-3 text-left transition-colors hover:bg-[#F1FAEA]"
-                >
-                  <span className="material-symbols-outlined text-[20px] text-[#1F9D55]">location_on</span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-label-bold text-label-bold">{title}</p>
-                    <p className="truncate font-label-sm text-label-sm text-on-surface-variant">{sub || r.display_name}</p>
-                  </div>
-                </button>
-              );
-            })}
-            <button
-              onClick={useMyLocation}
-              disabled={locating}
-              className="flex w-full items-center gap-3 p-3 text-left text-[#15803D] transition-colors hover:bg-[#F1FAEA] disabled:opacity-60"
-            >
-              <span className={`material-symbols-outlined text-[20px] ${locating ? "animate-spin" : ""}`}>{locating ? "progress_activity" : "my_location"}</span>
-              <span className="font-label-bold text-label-bold">{locating ? "Mencari lokasimu…" : "Gunakan Lokasi Saat Ini"}</span>
-            </button>
-          </div>
-
-          <p role="status" aria-live="polite" className={`mt-2 text-center font-label-sm text-label-sm text-[#B45309] ${note ? "" : "hidden"}`}>{note}</p>
-
-          {/* Peta interaktif seluruh Bali */}
-          <div style={rise(3)}>
-            <div className="wl-map relative mt-3 aspect-[5/4] w-full overflow-hidden rounded-2xl border-2 border-[#9CCB45]/60 shadow-[0_10px_24px_-10px_rgba(31,157,85,0.6)]">
-              <div ref={mapEl} className="absolute inset-0" role="application" aria-label="Peta Bali. Seret atau geser untuk memindahkan, cubit atau scroll untuk zoom." />
-
-              {!mapReady && (
-                <div className="absolute inset-0 grid place-items-center bg-[#E9F5DA] text-sm font-semibold text-[#3F6B2A]">Memuat peta Bali…</div>
-              )}
-
-              {/* Pin tetap di tengah peta (peta yang bergerak) */}
-              <div className="pointer-events-none absolute left-1/2 top-1/2 z-[500]">
-                <span className="absolute h-10 w-10 rounded-full bg-[#4CBF6B]/40" style={{ animation: "wlPulse 2s ease-in-out infinite", left: 0, top: 0 }} />
-                <span className="absolute rounded-full bg-black/25 blur-[2px]" style={{ width: dragging ? 12 : 18, height: dragging ? 5 : 7, left: 0, top: 0, transform: "translate(-50%,-50%)", transition: "all .2s" }} />
-                <span key={dropKey} className="absolute h-14 w-14 rounded-full border-2 border-[#4CBF6B]" style={{ left: 0, top: 0, opacity: 0, animation: dropKey > 0 ? "wlRipple .8s ease-out" : "none" }} />
-                <div style={{ transform: "translate(-50%,-100%)" }}>
-                  <div
-                    key={dragging ? "up" : `down-${dropKey}`}
-                    style={{
-                      transformOrigin: "50% 100%",
-                      animation: dragging ? "wlWobble .5s ease-in-out infinite" : "wlDropPin .5s cubic-bezier(.3,1.4,.5,1)",
-                      translate: dragging ? "0 -12px" : "0 0",
-                      transition: "translate .2s",
-                    }}
-                    className="drop-shadow-[0_6px_6px_rgba(21,128,61,0.45)]"
-                  >
-                    <Pin lifted={dragging} />
-                  </div>
-                </div>
-              </div>
-
-              {/* Tombol lihat seluruh Bali */}
-              <button
-                onClick={resetBali}
-                aria-label="Lihat seluruh Bali"
-                className="absolute left-2 top-2 z-[500] flex items-center gap-1 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold text-[#15803D] shadow-md transition-colors hover:bg-[#F1FAEA]"
-              >
-                <span className="material-symbols-outlined text-[16px]">zoom_out_map</span>
-                Seluruh Bali
-              </button>
-
-              <span className="pointer-events-none absolute bottom-2 left-1/2 z-[500] -translate-x-1/2 whitespace-nowrap rounded-full bg-white/85 px-3 py-1 text-[10px] font-semibold text-[#3F6B2A]" style={{ animation: "wlHint 2.4s ease-in-out infinite" }}>
-                Geser &amp; cubit peta untuk memilih
-              </span>
+          {/* ===== Header + Cari (kanan di desktop, atas di HP) ===== */}
+          <div className="p-6 pb-0 sm:p-8 sm:pb-0 md:col-start-2 md:row-start-1 md:pl-10">
+            <div className="text-center md:text-left" style={rise(0)}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/grid-logos.png" alt="GRID.ID" className="mx-auto mb-3 h-10 w-auto object-contain md:mx-0" />
+              <h1 className="font-headline-sm text-headline-sm">Pilih wilayahmu</h1>
+              <p className="mt-1 font-body-md text-body-md text-on-surface-variant">
+                Geser peta Bali sampai pin tepat di lokasimu. Zoom untuk lihat desa &amp; banjar.
+              </p>
             </div>
 
-            {/* Detail wilayah di titik pin */}
+            {/* Cari */}
+            <div className="relative mt-5" style={rise(1)}>
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-outline">search</span>
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Cari kabupaten, kecamatan, desa, atau banjar"
+                className="fld w-full rounded-xl border border-outline-variant bg-white/80 py-2.5 pl-10 pr-10 font-body-md text-body-md outline-none transition-all"
+              />
+              {searching && (
+                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-[18px] text-[#1F9D55]">progress_activity</span>
+              )}
+            </div>
+
+            {/* Hasil pencarian + GPS */}
+            <div className="mt-3 overflow-hidden rounded-xl border border-outline-variant bg-white/70" style={rise(2)}>
+              {query.trim().length >= 3 && !searching && results.length === 0 && (
+                <p className="p-3 text-center font-label-sm text-label-sm text-on-surface-variant">Wilayah tidak ditemukan. Coba geser peta.</p>
+              )}
+              {results.map((r) => {
+                const a = parseAdmin(r.address);
+                const title = r.name || r.display_name.split(",")[0];
+                const sub = [a.desa, a.kecamatan, a.kabupaten].filter(Boolean).join(", ");
+                return (
+                  <button
+                    key={r.place_id}
+                    onClick={() => pickResult(r)}
+                    className="flex w-full items-center gap-3 border-b border-outline-variant/60 p-3 text-left transition-colors hover:bg-[#F1FAEA]"
+                  >
+                    <span className="material-symbols-outlined text-[20px] text-[#1F9D55]">location_on</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-label-bold text-label-bold">{title}</p>
+                      <p className="truncate font-label-sm text-label-sm text-on-surface-variant">{sub || r.display_name}</p>
+                    </div>
+                  </button>
+                );
+              })}
+              <button
+                onClick={useMyLocation}
+                disabled={locating}
+                className="flex w-full items-center gap-3 p-3 text-left text-[#15803D] transition-colors hover:bg-[#F1FAEA] disabled:opacity-60"
+              >
+                <span className={`material-symbols-outlined text-[20px] ${locating ? "animate-spin" : ""}`}>{locating ? "progress_activity" : "my_location"}</span>
+                <span className="font-label-bold text-label-bold">{locating ? "Mencari lokasimu…" : "Gunakan Lokasi Saat Ini"}</span>
+              </button>
+            </div>
+
+            <p role="status" aria-live="polite" className={`mt-2 text-center font-label-sm text-label-sm text-[#B45309] md:text-left ${note ? "" : "hidden"}`}>{note}</p>
+          </div>
+
+          {/* ===== Peta (kiri di desktop, tengah di HP) ===== */}
+          <div
+            className="wl-map relative mt-4 h-80 w-full sm:h-96 md:col-start-1 md:row-span-3 md:row-start-1 md:mt-0 md:h-auto md:min-h-150"
+            style={rise(3)}
+          >
+            <div ref={mapEl} className="absolute inset-0" role="application" aria-label="Peta Bali. Seret atau geser untuk memindahkan, cubit atau scroll untuk zoom." />
+
+            {!mapReady && (
+              <div className="absolute inset-0 grid place-items-center bg-[#E9F5DA] text-sm font-semibold text-[#3F6B2A]">Memuat peta Bali…</div>
+            )}
+
+            {/* Pin tetap di tengah peta (peta yang bergerak) */}
+            <div className="pointer-events-none absolute left-1/2 top-1/2 z-500">
+              <span className="absolute h-10 w-10 rounded-full bg-[#4CBF6B]/40" style={{ animation: "wlPulse 2s ease-in-out infinite", left: 0, top: 0 }} />
+              <span className="absolute rounded-full bg-black/25 blur-[2px]" style={{ width: dragging ? 12 : 18, height: dragging ? 5 : 7, left: 0, top: 0, transform: "translate(-50%,-50%)", transition: "all .2s" }} />
+              <span key={dropKey} className="absolute h-14 w-14 rounded-full border-2 border-[#4CBF6B]" style={{ left: 0, top: 0, opacity: 0, animation: dropKey > 0 ? "wlRipple .8s ease-out" : "none" }} />
+              <div style={{ transform: "translate(-50%,-100%)" }}>
+                <div
+                  key={dragging ? "up" : `down-${dropKey}`}
+                  style={{
+                    transformOrigin: "50% 100%",
+                    animation: dragging ? "wlWobble .5s ease-in-out infinite" : "wlDropPin .5s cubic-bezier(.3,1.4,.5,1)",
+                    translate: dragging ? "0 -12px" : "0 0",
+                    transition: "translate .2s",
+                  }}
+                  className="drop-shadow-[0_6px_6px_rgba(21,128,61,0.45)]"
+                >
+                  <Pin lifted={dragging} />
+                </div>
+              </div>
+            </div>
+
+            {/* Tombol lihat seluruh Bali */}
+            <button
+              onClick={resetBali}
+              aria-label="Lihat seluruh Bali"
+              className="absolute left-3 top-3 z-500 flex items-center gap-1 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold text-[#15803D] shadow-md transition-colors hover:bg-[#F1FAEA]"
+            >
+              <span className="material-symbols-outlined text-[16px]">zoom_out_map</span>
+              Seluruh Bali
+            </button>
+
+            <span className="pointer-events-none absolute bottom-3 left-1/2 z-500 -translate-x-1/2 whitespace-nowrap rounded-full bg-white/85 px-3 py-1 text-[10px] font-semibold text-[#3F6B2A]" style={{ animation: "wlHint 2.4s ease-in-out infinite" }}>
+              Geser &amp; cubit peta untuk memilih
+            </span>
+          </div>
+
+          {/* ===== Detail wilayah di titik pin ===== */}
+          <div className="px-6 pt-4 sm:px-8 md:col-start-2 md:row-start-2 md:pl-10" style={rise(4)}>
             <div
               key={dropKey}
-              className="mt-3 rounded-2xl border border-[#9CCB45]/50 bg-gradient-to-r from-[#F1FAEA] to-[#E8F7DC] p-3"
+              className="rounded-2xl border border-[#9CCB45]/50 bg-linear-to-r from-[#F1FAEA] to-[#E8F7DC] p-3"
               style={{ animation: "wlChip .45s cubic-bezier(.3,1.3,.5,1) both" }}
               aria-live="polite"
             >
@@ -554,22 +568,25 @@ export default function Wilayah() {
             </div>
           </div>
 
-          <div className="mt-4 flex justify-center gap-1.5" style={rise(4)}>
-            <span className="h-1.5 w-1.5 rounded-full bg-outline-variant" />
-            <span className="h-1.5 w-1.5 rounded-full bg-outline-variant" />
-            <span className="h-1.5 w-6 rounded-full" style={{ background: GRAD }} />
-          </div>
+          {/* ===== Dots + tombol Selesai ===== */}
+          <div className="p-6 pt-4 sm:p-8 sm:pt-4 md:col-start-2 md:row-start-3 md:pl-10">
+            <div className="flex justify-center gap-1.5" style={rise(5)}>
+              <span className="h-1.5 w-1.5 rounded-full bg-outline-variant" />
+              <span className="h-1.5 w-1.5 rounded-full bg-outline-variant" />
+              <span className="h-1.5 w-6 rounded-full" style={{ background: GRAD }} />
+            </div>
 
-          <div style={rise(5)}>
-            <button
-              onClick={() => go("/selesai", "Menyiapkan berandamu…")}
-              className="wl-btn group relative mt-4 flex w-full items-center justify-center gap-2 overflow-hidden rounded-full py-3 font-label-bold text-label-bold text-white transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_14px_30px_-4px_rgba(31,157,85,0.8),0_0_28px_rgba(156,203,69,0.75)] active:translate-y-0 active:scale-95 active:shadow-[0_0_36px_rgba(156,203,69,1)]"
-              style={{ background: GRAD, textShadow: "0 1px 3px rgba(0,0,0,0.25)" }}
-            >
-              <span className="pointer-events-none absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-white/35 transition-all duration-700 group-hover:left-[150%]" />
-              <span className="relative">Selesai</span>
-              <span className="wl-arrow material-symbols-outlined relative text-[18px]">arrow_forward</span>
-            </button>
+            <div style={rise(6)}>
+              <button
+                onClick={() => go("/selesai", "Menyiapkan berandamu…")}
+                className="wl-btn group relative mt-4 flex w-full items-center justify-center gap-2 overflow-hidden rounded-full py-3 font-label-bold text-label-bold text-white transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_14px_30px_-4px_rgba(31,157,85,0.8),0_0_28px_rgba(156,203,69,0.75)] active:translate-y-0 active:scale-95 active:shadow-[0_0_36px_rgba(156,203,69,1)]"
+                style={{ background: GRAD, textShadow: "0 1px 3px rgba(0,0,0,0.25)" }}
+              >
+                <span className="pointer-events-none absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-white/35 transition-all duration-700 group-hover:left-[150%]" />
+                <span className="relative">Selesai</span>
+                <span className="wl-arrow material-symbols-outlined relative text-[18px]">arrow_forward</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

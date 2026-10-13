@@ -36,7 +36,7 @@ export default function PemetaanGrid() {
       <div className="overflow-hidden rounded-2xl border border-outline-variant bg-card-surface shadow-sm">
         <div className="border-b border-outline-variant p-4"><h2 className="font-heading font-bold">Daftar Aset</h2></div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] text-left text-sm">
+          <table className="w-full min-w-180 text-left text-sm">
             <thead>
               <tr className="border-b border-outline-variant font-heading text-[11px] uppercase tracking-wider text-on-surface-variant">
                 <th className="p-4">Kode</th><th className="p-4">Nama Aset</th><th className="p-4">Kapasitas</th><th className="p-4">Koordinat</th><th className="p-4">Sinkron MAXIMO</th>

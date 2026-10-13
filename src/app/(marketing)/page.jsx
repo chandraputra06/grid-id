@@ -63,11 +63,11 @@ export default function Landing() {
           }}
               
         />
-        <div className="mx-auto flex max-w-[820px] flex-col items-center px-margin-mobile py-24 text-center md:py-28">
+        <div className="mx-auto flex max-w-205 flex-col items-center px-margin-mobile py-24 text-center md:py-16">
           <HeroIn>
             <h1 className="font-heading text-4xl font-extrabold leading-[1.08] tracking-tight text-white md:text-6xl">
              Ketahui resiko{" "}
-             <span className="bg-gradient-to-b from-[#ffe67e] to-[#fed400] bg-clip-text text-transparent">
+             <span className="bg-linear-to-b from-[#ffe67e] to-[#fed400] bg-clip-text text-transparent">
              Pemadaman Listrik
              </span>{" "}
              lokasimu sebelum terjadi
@@ -94,7 +94,7 @@ export default function Landing() {
               <input
                 type="text"
                 placeholder="Masukkan kelurahan atau desamu"
-                className="w-full rounded-full border-2 border-accent/80 bg-white/19 py-3.5 pl-12 pr-4 font-body-md text-body-md text-white placeholder:text-white/100 outline-none backdrop-blur(60px) focus:border-accent"
+                className="w-full rounded-full border-2 border-accent/80 bg-white/19 py-3.5 pl-12 pr-4 font-body-md text-body-md text-white placeholder:text-white outline-none backdrop-blur(60px) focus:border-accent"
               />
             </div>
           </HeroIn>
@@ -103,10 +103,10 @@ export default function Landing() {
 
       {/* ---------- STATS (white) ---------- */}
 <section className="bg-card-surface py-16">
-  <div className="mx-auto grid max-w-[1120px] grid-cols-2 gap-8 px-gutter md:grid-cols-4">
+  <div className="mx-auto grid max-w-280 grid-cols-2 gap-8 px-gutter md:grid-cols-4">
     {stats.map(([n, l], i) => (
       <Reveal key={l} delay={i * 0.08} className="text-center">
-        <div className="inline-block bg-gradient-to-br from-[#021590] to-[#7bf0ff] bg-clip-text font-heading text-4xl font-extrabold text-transparent md:text-5xl">
+        <div className="inline-block bg-linear-to-br from-[#021590] to-[#7bf0ff] bg-clip-text font-heading text-4xl font-extrabold text-transparent md:text-5xl">
           {n}
         </div>
         <div className="mt-1.5 font-body-md text-body-md text-on-surface-variant">
@@ -129,8 +129,8 @@ export default function Landing() {
     />
 
     {/* MENGAPA */}
-    <section className="px-margin-mobile pb-4 pt-8 md:px-gutter md:pt-12">
-      <div className="mx-auto max-w-[1300px] rounded-[32px] bg-gradient-to-br from-[#3ba1ff] to-[#000f73] px- pb6-40 pt-10 md:px-12 md:pb-38 md:pt-16">
+    <section className="px-margin-mobile pb-4 pt-4 md:px-gutter md:pt-0">
+      <div className="mx-auto max-w-325 rounded-4xl bg-linear-to-br from-[#3ba1ff] to-[#000f73] px- pb6-40 pt-10 md:px-12 md:pb-38 md:pt-16">
         <Reveal className="mx-auto max-w-4xl text-center">
           <h2 className="font-heading text-4xl font-extrabold text-white md:text-6xl">
             Mengapa Menggunakan GRID·ID?
@@ -144,7 +144,7 @@ export default function Landing() {
         <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
           {props.map((p, i) => (
             <Reveal key={p.title} delay={i * 0.1}>
-              <div className="group flex h-full min-h-[150px] items-center justify-between rounded-[10px] border-2 border-white bg-gradient-to-r from-[#ffdf8e] to-[#fcffd3] px-5 py-5 shadow-sm transition-transform hover:-translate-y-3 md:px-4">
+              <div className="group flex h-full min-h-37.5 items-center justify-between rounded-[10px] border-2 border-white bg-linear-to-r from-[#ffdf8e] to-[#fcffd3] px-5 py-5 shadow-sm transition-transform hover:-translate-y-3 md:px-4">
                 <div>
                   <h3 className="font-heading text-base font-bold text-brand md:text-lg">
                     {p.title}
@@ -168,7 +168,7 @@ export default function Landing() {
 
     {/* CARA KERJA — close to Mengapa, thick stroke + curved radius */}
     <section className="relative z-10 -mt-16 px-margin-mobile pb-6 pt-4 md:-mt-32 md:px-gutter md:pt-6">
-      <div className="mx-auto max-w-[1300px] rounded-[50px] border-[0px] border-white bg-gradient-to-br from-[#fff384] to-[#f6b845] px-3 py-16 md:px-7 md:py-10">
+      <div className="mx-auto max-w-325 rounded-[50px] border-0 border-white bg-linear-to-br from-[#fff384] to-[#f6b845] px-3 py-16 md:px-7 md:py-10">
         <Reveal className="text-center">
           <h2 className="font-heading text-4xl font-extrabold text-[#055dd9] md:text-6xl">
             Cara Kerja GRID.ID
@@ -190,7 +190,7 @@ export default function Landing() {
             return (
               <Reveal key={s.n} delay={i * 0.1}>
                 <div
-                  className={`group relative flex min-h-[220px] h-full flex-col items-center justify-center p-6 text-center transition-[transform,box-shadow,background-color] duration-300 ease-out hover:z-20 hover:-translate-y-2 hover:scale-[1.04] hover:bg-white hover:shadow-[0_16px_30px_rgba(13,21,38,0.22)] ${featured ? "z-10 bg-white shadow-xl ring-2 ring-[#fbf24a] md:-translate-y-1" : "bg-[#FFFFFF] shadow-xs"} ${i === 0 ? "rounded-l-[50px]" : ""} ${i === steps.length - 1 ? "rounded-r-[26px]" : ""}`}
+                  className={`group relative flex min-h-55 h-full flex-col items-center justify-center p-6 text-center transition-[transform,box-shadow,background-color] duration-300 ease-out hover:z-20 hover:-translate-y-2 hover:scale-[1.04] hover:bg-white hover:shadow-[0_16px_30px_rgba(13,21,38,0.22)] ${featured ? "z-10 bg-white shadow-xl ring-2 ring-[#fbf24a] md:-translate-y-1" : "bg-[#FFFFFF] shadow-xs"} ${i === 0 ? "rounded-l-[50px]" : ""} ${i === steps.length - 1 ? "rounded-r-[26px]" : ""}`}
                 >
                   <div className="relative mb-3">
                     <span className="grid h-25 w-25 place-items-center overflow-hidden rounded-full bg-brand">
@@ -222,13 +222,13 @@ export default function Landing() {
 
   {/* ---------- CTA ---------- */}
  <section className="bg-[#ddefff] px-3 pb-16 pt-6">
-    <Reveal className="mx-auto max-w-[1300px]">
-      <div className="relative flex flex-col items-start justify-between gap-6 rounded-[40px]  bg-gradient-to-r from-[#0a60ff] to-[#eea51e] px-8 py-20 md:flex-row md:items-center md:px-14">
+    <Reveal className="mx-auto max-w-325">
+      <div className="relative flex flex-col items-start justify-between gap-6 rounded-[40px]  bg-linear-to-r from-[#0a60ff] to-[#eea51e] px-8 py-20 md:flex-row md:items-center md:px-14">
         <div className="max-w-xl">
           <h2 className="font-heading text-2xl font-extrabold text-white md:text-4xl">
             Bergabung menjaga jaringan di wilayahmu
           </h2>
-          <p className="mt-4 font-body-md text-body-lg text-white/100">
+          <p className="mt-4 font-body-md text-body-lg text-white">
             Jadilah bagian dari solusi. Laporan dan partisipasimu membantu
             mencegah krisis sebelum terjadi.
           </p>

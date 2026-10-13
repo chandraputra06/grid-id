@@ -47,7 +47,7 @@ export default function AdminLaporan() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[820px] text-left">
+          <table className="w-full min-w-205 text-left">
             <thead>
               <tr className="border-b border-outline-variant font-heading text-[11px] uppercase tracking-wider text-on-surface-variant">
                 <th className="p-4">ID Laporan</th>

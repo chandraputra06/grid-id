@@ -41,7 +41,7 @@ const PIECES = Array.from({ length: 70 }, (_, i) => {
 
 function Confetti() {
   return (
-    <div className="wl-confetti pointer-events-none fixed inset-0 z-[60] overflow-hidden" aria-hidden>
+    <div className="wl-confetti pointer-events-none fixed inset-0 z-60 overflow-hidden" aria-hidden>
       {PIECES.map((p, i) => {
         const base = {
           width: p.w,
@@ -175,7 +175,7 @@ export default function Selesai() {
           </div>
 
           <div style={rise(3)}>
-            <h1 className="mt-3 bg-gradient-to-r from-[#1E40AF] via-[#2563EB] to-[#38BDF8] bg-clip-text font-headline-md text-headline-md text-transparent">
+            <h1 className="mt-3 bg-linear-to-r from-[#1E40AF] via-[#2563EB] to-[#38BDF8] bg-clip-text font-headline-md text-headline-md text-transparent">
               Kamu kini Penjaga Grid!
             </h1>
             <p className="mt-2 font-body-md text-body-md text-on-surface-variant">
@@ -189,7 +189,7 @@ export default function Selesai() {
               className="wl-cta group relative mt-6 flex items-center justify-center gap-2 overflow-hidden rounded-full py-3.5 font-label-bold text-label-bold text-[#FDE047] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_32px_-6px_rgba(37,99,235,0.8),0_0_30px_rgba(251,191,36,0.7)] active:translate-y-0 active:scale-95"
               style={{ background: BLUE_GRAD, textShadow: "0 1px 3px rgba(0,0,0,0.3)" }}
             >
-              <span className="wl-shine pointer-events-none absolute inset-y-0 w-1/2 -skew-x-12 bg-gradient-to-r from-transparent via-[#FDE68A]/60 to-transparent" />
+              <span className="wl-shine pointer-events-none absolute inset-y-0 w-1/2 -skew-x-12 bg-linear-to-r from-transparent via-[#FDE68A]/60 to-transparent" />
               <span className="material-symbols-outlined relative text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>shield</span>
               <span className="relative">Lihat Skor Risikoku</span>
               <span className="wl-arrow material-symbols-outlined relative text-[18px]">arrow_forward</span>
@@ -197,7 +197,7 @@ export default function Selesai() {
 
             <Link
               href="/peta-publik"
-              className="relative mt-4 inline-flex items-center gap-1 font-label-bold text-label-bold text-[#2563EB] transition-colors hover:text-[#1E40AF] after:absolute after:-bottom-0.5 after:left-0 after:h-0.5 after:w-0 after:rounded-full after:bg-gradient-to-r after:from-[#FBBF24] after:to-[#F97316] after:transition-all after:duration-300 hover:after:w-full"
+              className="relative mt-4 inline-flex items-center gap-1 font-label-bold text-label-bold text-[#2563EB] transition-colors hover:text-[#1E40AF] after:absolute after:-bottom-0.5 after:left-0 after:h-0.5 after:w-0 after:rounded-full after:bg-linear-to-r after:from-[#FBBF24] after:to-[#F97316] after:transition-all after:duration-300 hover:after:w-full"
             >
               <span className="material-symbols-outlined text-[18px]">map</span>
               Jelajahi Peta Publik

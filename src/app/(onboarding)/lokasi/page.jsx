@@ -13,7 +13,7 @@ function TransitionOverlay({ text }) {
   const letters = "GRID·ID".split("");
   return (
     <div
-      className="no-motion fixed inset-0 z-[100] grid place-items-center overflow-hidden"
+      className="no-motion fixed inset-0 z-100 grid place-items-center overflow-hidden"
       style={{ background: GREEN_GRAD_135, animation: "lkFade 0.4s ease-out both" }}
     >
       {[["12%", "20%", "0s"], ["82%", "16%", ".4s"], ["20%", "78%", ".8s"], ["88%", "70%", ".2s"], ["50%", "10%", ".6s"]].map(([l, tp, d], i) => (
@@ -40,7 +40,7 @@ function TransitionOverlay({ text }) {
         </div>
         <p className="mt-3 text-sm font-semibold text-white/90" style={{ animation: "lkFade 0.6s ease-out 1.4s both" }}>{text}</p>
         <div className="mt-5 h-2 w-56 overflow-hidden rounded-full bg-white/25">
-          <div className="h-full rounded-full bg-gradient-to-r from-white to-[#FEF08A] shadow-[0_0_12px_rgba(255,255,255,0.8)]" style={{ animation: "lkBar 2.2s ease-in-out 0.3s both" }} />
+          <div className="h-full rounded-full bg-linear-to-r from-white to-[#FEF08A] shadow-[0_0_12px_rgba(255,255,255,0.8)]" style={{ animation: "lkBar 2.2s ease-in-out 0.3s both" }} />
         </div>
       </div>
     </div>
@@ -118,7 +118,7 @@ export default function Lokasi() {
           <div className="relative mx-auto mb-5 grid h-44 w-44 place-items-center">
             <span className="absolute inset-4 rounded-full border-2 border-[#22C55E]/60" style={{ animation: "lkRing 2.4s ease-out 1.2s infinite" }} aria-hidden />
             <span className="absolute inset-4 rounded-full border-2 border-[#22C55E]/60" style={{ animation: "lkRing 2.4s ease-out 2.4s infinite" }} aria-hidden />
-            <div className="absolute inset-6 rounded-full bg-gradient-to-br from-[#BBF7D0] to-[#A5F3FC] opacity-70 blur-xl" aria-hidden />
+            <div className="absolute inset-6 rounded-full bg-linear-to-br from-[#BBF7D0] to-[#A5F3FC] opacity-70 blur-xl" aria-hidden />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/maskot-akses-lokasi.png"

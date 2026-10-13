@@ -246,7 +246,7 @@ const factors = [
     card: "bg-gradient-to-br from-[#F87171] to-[#B91C1C] shadow-[0_10px_24px_-6px_rgba(229,72,77,0.55)] hover:shadow-[0_20px_38px_-6px_rgba(229,72,77,0.75)]",
   },
   {
-    label: "Cuaca BMKG — angin kencang 3 hari", tag: "Waspada", w: "w-3/5", note: "Sumber: BMKG",
+    label: "Cuaca BMKG angin kencang 3 hari", tag: "Waspada", w: "w-3/5", note: "Sumber: BMKG",
     card: "bg-gradient-to-br from-[#FBBF24] to-[#EA7C0B] shadow-[0_10px_24px_-6px_rgba(245,158,11,0.55)] hover:shadow-[0_20px_38px_-6px_rgba(245,158,11,0.75)]",
   },
   {
@@ -290,9 +290,9 @@ export default function Beranda() {
         />
       ))}
 
-      <div className="relative mx-auto max-w-[900px] px-margin-mobile pb-20 pt-28 md:px-gutter">
+      <div className="relative mx-auto max-w-225 px-margin-mobile pb-20 pt-6 md:px-gutter">
         {sending && (
-          <div className="fixed inset-0 z-[100] grid place-items-center bg-[#0D1B2A]/85 backdrop-blur-sm">
+          <div className="fixed inset-0 z-100 grid place-items-center bg-[#0D1B2A]/85 backdrop-blur-sm">
             <div className="px-6 text-center text-white">
               <div className="mx-auto h-14 w-14 animate-spin rounded-full border-4 border-white/20 border-t-[#F59E0B]" />
               <p className="mt-6 text-lg font-semibold">Kami akan mengirimkan laporanmu ke PLN</p>
@@ -358,7 +358,7 @@ export default function Beranda() {
                   </span>
                   <button
                     onClick={handleNotify}
-                    className="flex items-center gap-2 rounded-full bg-[#E5484D] px-6 py-3 font-label-bold text-label-bold text-white shadow-[0_6px_16px_-4px_rgba(229,72,77,0.5)] transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:shadow-[0_12px_28px_-2px_rgba(229,72,77,0.8),0_0_24px_rgba(229,72,77,0.6)] active:translate-y-0 active:scale-100"
+                    className="flex items-center gap-2 rounded-full bg-risk-kritis px-6 py-3 font-label-bold text-label-bold text-white shadow-[0_6px_16px_-4px_rgba(229,72,77,0.5)] transition-all duration-300 hover:-translate-y-1 hover:scale-105 hover:shadow-[0_12px_28px_-2px_rgba(229,72,77,0.8),0_0_24px_rgba(229,72,77,0.6)] active:translate-y-0 active:scale-100"
                   >
                     <span className="material-symbols-outlined text-[20px]">notifications_active</span> Notifikasi PLN
                   </button>
@@ -377,7 +377,7 @@ export default function Beranda() {
                   {s.solid ? (
                     <p className="font-headline-sm text-headline-sm font-extrabold text-white">{s.v}</p>
                   ) : (
-                    <p className={`bg-gradient-to-r bg-clip-text font-headline-sm text-headline-sm font-extrabold text-transparent ${risk.gradText}`}>
+                    <p className={`bg-linear-0-to-r bg-clip-text font-headline-sm text-headline-sm font-extrabold text-transparent ${risk.gradText}`}>
                       {s.v}
                     </p>
                   )}
@@ -420,7 +420,7 @@ export default function Beranda() {
           <div className="flex flex-col gap-3 sm:flex-row">
             <Link
               href="/lapor"
-              className="flex flex-1 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#0B2A5B] to-[#1D4ED8] px-6 py-3.5 font-label-bold text-label-bold text-[#FEF08A] shadow-[0_6px_16px_-4px_rgba(11,42,91,0.5)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_28px_-2px_rgba(11,42,91,0.55),0_0_26px_rgba(250,204,21,0.65)] active:translate-y-0 active:shadow-[0_4px_12px_-2px_rgba(11,42,91,0.6),0_0_18px_rgba(250,204,21,0.8)] [text-shadow:0_2px_6px_rgba(0,0,0,0.45)]"
+              className="flex flex-1 items-center justify-center gap-2 rounded-full bg-linear-to-r from-[#0B2A5B] to-[#1D4ED8] px-6 py-3.5 font-label-bold text-label-bold text-[#FEF08A] shadow-[0_6px_16px_-4px_rgba(11,42,91,0.5)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_28px_-2px_rgba(11,42,91,0.55),0_0_26px_rgba(250,204,21,0.65)] active:translate-y-0 active:shadow-[0_4px_12px_-2px_rgba(11,42,91,0.6),0_0_18px_rgba(250,204,21,0.8)] [text-shadow:0_2px_6px_rgba(0,0,0,0.45)]"
             >
               <span className="material-symbols-outlined text-[20px] [text-shadow:0_2px_6px_rgba(0,0,0,0.45)]">photo_camera</span> Lapor Kondisi
             </Link>
@@ -428,11 +428,11 @@ export default function Beranda() {
             {/* Outline gradasi hijau + teks gradasi hijau */}
             <Link
               href="/peta-publik"
-              className="group flex flex-1 rounded-full bg-gradient-to-r from-[#4ADE80] to-[#15803D] p-[2px] shadow-[0_6px_16px_-4px_rgba(22,163,74,0.4)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_26px_-4px_rgba(22,163,74,0.5),0_0_26px_rgba(134,239,172,0.9)] active:translate-y-0 active:shadow-[0_6px_16px_-2px_rgba(22,163,74,0.55),0_0_32px_rgba(134,239,172,1)]"
+              className="group flex flex-1 rounded-full bg-linear-to-r from-[#4ADE80] to-[#15803D] p-0.5 shadow-[0_6px_16px_-4px_rgba(22,163,74,0.4)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_26px_-4px_rgba(22,163,74,0.5),0_0_26px_rgba(134,239,172,0.9)] active:translate-y-0 active:shadow-[0_6px_16px_-2px_rgba(22,163,74,0.55),0_0_32px_rgba(134,239,172,1)]"
             >
               <span className="flex w-full items-center justify-center gap-2 rounded-full bg-white px-6 py-3 font-label-bold text-label-bold transition-colors duration-300 group-hover:bg-[#F0FDF4]">
                 <span className="material-symbols-outlined text-[20px] text-[#16A34A]">map</span>
-                <span className="bg-gradient-to-r from-[#22C55E] to-[#15803D] bg-clip-text text-transparent">Lihat Peta Wilayah</span>
+                <span className="bg-linear-to-r from-[#22C55E] to-[#15803D] bg-clip-text text-transparent">Lihat Peta Wilayah</span>
               </span>
             </Link>
           </div>

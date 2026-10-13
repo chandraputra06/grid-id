@@ -9,7 +9,7 @@ const rows = [
 
 export default function Skor() {
   return (
-    <div className="mx-auto max-w-[720px] px-margin-mobile pb-20 pt-28 md:px-gutter">
+    <div className="mx-auto max-w-720px px-margin-mobile pb-20 pt-28 md:px-gutter">
       <Reveal>
         <div className="rounded-2xl border border-outline-variant bg-card-surface p-8 shadow-[0_4px_12px_rgba(13,27,42,0.05)]">
           <div className="text-center">

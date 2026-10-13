@@ -61,7 +61,7 @@ function TransitionOverlay({ text, t }) {
   const letters = "GRID·ID".split("");
   return (
     <div
-      className="no-motion fixed inset-0 z-[100] grid place-items-center overflow-hidden"
+      className="no-motion fixed inset-0 z-100 grid place-items-center overflow-hidden"
       style={{ background: t.grad135, animation: "gridFade 0.4s ease-out both" }}
     >
       {[["12%", "20%", "0s"], ["82%", "16%", ".4s"], ["20%", "78%", ".8s"], ["88%", "70%", ".2s"], ["50%", "10%", ".6s"]].map(([l, tp, d], i) => (
@@ -209,14 +209,14 @@ export default function Masuk() {
               />
             ))}
             <span
-              className="pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/25 to-transparent"
+              className="pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-linear-to-r from-transparent via-white/25 to-transparent"
               style={{ animation: "sheen 1.4s ease-in-out 1s both" }}
               aria-hidden
             />
 
             <p
               key={`${mode}-${quote}`}
-              className="relative max-w-[280px] text-balance text-center text-sm font-semibold leading-snug text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.35)]"
+              className="relative max-w-70 text-balance text-center text-sm font-semibold leading-snug text-white [text-shadow:0_2px_8px_rgba(0,0,0,0.35)]"
               style={{ animation: `quoteIn 0.7s ease-out ${intro ? 0.1 : 1.2}s both`, minHeight: "2.5rem" }}
             >
               {quote}
@@ -227,7 +227,7 @@ export default function Masuk() {
               key={mode}
               src={t.img}
               alt={mode === "masuk" ? "Maskot GRID·ID" : "Maskot pendaftaran GRID·ID"}
-              className="relative max-h-[320px] w-full object-contain drop-shadow-[0_14px_24px_rgba(0,0,0,0.35)]"
+              className="relative max-h-80 w-full object-contain drop-shadow-[0_14px_24px_rgba(0,0,0,0.35)]"
               style={{ animation: `mascotIn 0.9s cubic-bezier(.16,1,.3,1) ${intro ? 0 : 0.9}s both, mascotFloat 3.2s ease-in-out ${intro ? 0.9 : 1.8}s infinite` }}
             />
           </div>
@@ -297,7 +297,13 @@ export default function Masuk() {
 
             <div style={rise(6)}>
               <button className="btn-alt flex w-full items-center justify-center gap-2 rounded-full border border-outline-variant bg-white/80 py-3 font-label-bold text-label-bold transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:scale-95">
-                <span className="material-symbols-outlined text-[18px]">g_translate</span>
+               <div className="flex items-center gap-2">
+                  <img
+                    src="/google.png"
+                    alt="Google"
+                    className="h-4.5 w-4.5 object-contain"
+                  />
+                </div>
                 {mode === "masuk" ? "Masuk dengan Google" : "Daftar dengan Google"}
               </button>
             </div>
