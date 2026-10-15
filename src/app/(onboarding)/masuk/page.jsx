@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
 
 /* Taruh di folder /public:
    login-img.png (maskot panel Masuk), maskot-daftar.png (maskot panel Daftar),
@@ -120,6 +122,12 @@ export default function Masuk() {
   const [quote, setQuote] = useState("");
   const [intro, setIntro] = useState(false); // true setelah animasi masuk awal selesai
 
+  // --- Auth state ---
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false);
+
   const t = THEMES[mode];
 
   // Kutipan acak, diganti setiap kali tab Masuk/Daftar berubah
@@ -139,6 +147,45 @@ export default function Masuk() {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     setTimeout(() => router.push(href), reduce ? 300 : 2600);
   };
+
+  // Masuk / Daftar -> Supabase Auth, lalu arahkan sesuai role.
+  async function submit() {
+    if (busy || leaving) return;
+    setErr("");
+    if (!email || !password) {
+      setErr("Email dan kata sandi wajib diisi.");
+      return;
+    }
+    setBusy(true);
+    try {
+      if (mode === "masuk") {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        if (!data.session) {
+          setBusy(false);
+          setMode("masuk");
+          setErr("Pendaftaran berhasil. Cek email untuk verifikasi, lalu masuk.");
+          return;
+        }
+      }
+      // Sesi aktif -> tentukan role dari backend, lalu arahkan.
+      let role = "warga";
+      try {
+        const me = await api.get("/api/me");
+        role = me.role || "warga";
+      } catch {
+        // abaikan; default warga
+      }
+      if (role === "admin" || role === "petugas") go("/dashboard", "Menyiapkan dashboard…");
+      else go("/lapor", "Menyiapkan laporanmu…");
+    } catch (e) {
+      setBusy(false);
+      setErr(e?.message || "Gagal masuk. Periksa email/kata sandi.");
+    }
+  }
 
   return (
     <div
@@ -243,7 +290,7 @@ export default function Masuk() {
               {[["masuk", "Masuk"], ["daftar", "Daftar"]].map(([k, label]) => (
                 <button
                   key={k}
-                  onClick={() => setMode(k)}
+                  onClick={() => { setMode(k); setErr(""); }}
                   className={`flex-1 rounded-full py-2 transition-all duration-300 ${
                     mode === k ? "text-white shadow-[0_6px_14px_-4px_var(--sh)]" : "tab-off text-on-surface-variant"
                   }`}
@@ -261,6 +308,8 @@ export default function Masuk() {
                   <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-outline">mail</span>
                   <input
                     type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="Masukkan email Anda"
                     className="fld w-full rounded-xl border border-outline-variant bg-white/80 py-2.5 pl-10 pr-4 font-body-md text-body-md outline-none transition-all"
                   />
@@ -272,6 +321,9 @@ export default function Masuk() {
                   <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-outline">lock</span>
                   <input
                     type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && submit()}
                     placeholder="Masukkan kata sandi"
                     className="fld w-full rounded-xl border border-outline-variant bg-white/80 py-2.5 pl-10 pr-4 font-body-md text-body-md outline-none transition-all"
                   />
@@ -279,14 +331,21 @@ export default function Masuk() {
               </div>
             </div>
 
+            {err && (
+              <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-center text-[13px] font-semibold text-red-600">
+                {err}
+              </p>
+            )}
+
             <div style={rise(4)}>
               <button
-                onClick={() => go("/lokasi", "Menyiapkan lokasimu…")}
-                className="group relative mt-5 flex w-full items-center justify-center gap-2 overflow-hidden rounded-full py-3 font-label-bold text-label-bold text-white shadow-[0_8px_20px_-6px_var(--sh)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_14px_30px_-4px_var(--sh),0_0_26px_var(--sh2)] active:translate-y-0 active:scale-95 active:shadow-[0_0_34px_var(--sh3)]"
+                onClick={submit}
+                disabled={busy}
+                className="group relative mt-5 flex w-full items-center justify-center gap-2 overflow-hidden rounded-full py-3 font-label-bold text-label-bold text-white shadow-[0_8px_20px_-6px_var(--sh)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_14px_30px_-4px_var(--sh),0_0_26px_var(--sh2)] active:translate-y-0 active:scale-95 active:shadow-[0_0_34px_var(--sh3)] disabled:opacity-60"
                 style={{ background: t.grad }}
               >
                 <span className="pointer-events-none absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-white/35 transition-all duration-700 group-hover:left-[150%]" />
-                <span className="relative">Lanjutkan</span>
+                <span className="relative">{busy ? "Memproses…" : "Lanjutkan"}</span>
                 <span className="material-symbols-outlined relative text-[18px] transition-transform duration-300 group-hover:translate-x-1">arrow_forward</span>
               </button>
             </div>
