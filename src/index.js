@@ -5,7 +5,6 @@ const { notFound, errorHandler } = require('./middleware/errorHandler');
 const swaggerUi = require('swagger-ui-express');
 const openapi = require('./docs/openapi');
 const { requireAuth, requireRole } = require('./middleware/auth');
-const { requireAuth, requireRole } = require('./middleware/auth');
 
 const app = express();
 
@@ -33,6 +32,8 @@ app.use('/api/prioritas', requireAuth, requireRole('admin', 'petugas'), require(
 app.use('/api/rekomendasi', requireAuth, requireRole('admin', 'petugas'), require('./routes/rekomendasi'));
 app.use('/api/detections', requireAuth, requireRole('admin', 'petugas'), require('./routes/detections'));
 app.use('/api/dataset', requireAuth, requireRole('admin', 'petugas'), require('./routes/dataset'));
+
+// Admin saja
 app.use('/api/users', requireAuth, requireRole('admin'), require('./routes/users'));
 
 // 404 + error handler (harus paling bawah)
