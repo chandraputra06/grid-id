@@ -44,8 +44,10 @@ module.exports = {
     { name: 'SPK', description: 'Rekomendasi tindakan (defect -> aksi)' },
     { name: 'Dashboard', description: 'Ringkasan & data peta' },
     { name: 'Auth', description: 'Autentikasi & profil (Supabase Auth)' },
+    { name: 'Users', description: 'Manajemen user (admin)' },
     { name: 'Uploads', description: 'Upload foto ke Storage' },
     { name: 'Detections', description: 'Verifikasi deteksi (label training)' },
+    { name: 'Dataset', description: 'Export data training (YOLO)' },
   ],
 
   paths: {
@@ -322,6 +324,72 @@ module.exports = {
         },
       },
     },
+    '/api/dataset/export': {
+      get: {
+        tags: ['Dataset'],
+        summary: 'Export deteksi terverifikasi sebagai manifest dataset (YOLO)',
+        description:
+          'Kumpulkan deteksi verified=true, kelompokkan per gambar, konversi bbox ke format center YOLO. ' +
+          'format=json (default) atau csv. Dipakai inference/build_dataset.py untuk membangun dataset lokal.',
+        parameters: [
+          { name: 'format', in: 'query', required: false, schema: { type: 'string', enum: ['json', 'csv'], default: 'json' } },
+        ],
+        responses: {
+          200: jsonOk({ $ref: '#/components/schemas/DatasetExport' }),
+        },
+      },
+    },
+    '/api/users': {
+      get: {
+        tags: ['Users'],
+        summary: 'Daftar user (profil + email). Admin only.',
+        responses: { 200: jsonOk({ type: 'array', items: { $ref: '#/components/schemas/Profile' } }) },
+      },
+      post: {
+        tags: ['Users'],
+        summary: 'Buat akun baru (petugas/admin/warga). Admin only.',
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: {
+            type: 'object',
+            required: ['email', 'password'],
+            properties: {
+              email: { type: 'string', example: 'petugas2@grid.id' },
+              password: { type: 'string', example: 'MinimalDelapan#1' },
+              full_name: { type: 'string', example: 'Petugas Dua' },
+              role: { type: 'string', enum: ['admin', 'petugas', 'warga'], default: 'petugas' },
+              phone: { type: 'string', nullable: true },
+              unit: { type: 'string', nullable: true },
+            },
+          } } },
+        },
+        responses: {
+          201: jsonOk({ $ref: '#/components/schemas/Profile' }, 'Created'),
+          400: { $ref: '#/components/responses/Error' },
+        },
+      },
+    },
+
+    '/api/users/{id}/role': {
+      patch: {
+        tags: ['Users'],
+        summary: 'Ubah role user. Admin only.',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: {
+            type: 'object',
+            required: ['role'],
+            properties: { role: { type: 'string', enum: ['admin', 'petugas', 'warga'] } },
+          } } },
+        },
+        responses: {
+          200: jsonOk({ $ref: '#/components/schemas/Profile' }),
+          400: { $ref: '#/components/responses/Error' },
+          404: { $ref: '#/components/responses/Error' },
+        },
+      },
+    },
   },
 
   components: {
@@ -593,6 +661,37 @@ module.exports = {
           token: { type: 'string', description: 'Token utk uploadToSignedUrl' },
           signed_url: { type: 'string' },
           public_url: { type: 'string', example: 'https://<proj>.supabase.co/storage/v1/object/public/report-photos/...' },
+        },
+      },
+      DatasetExport: {
+        type: 'object',
+        properties: {
+          classes: { type: 'array', items: { type: 'string' }, example: ['isolator_pecah', 'korosi', 'kabel_bermasalah', 'komponen_hilang'] },
+          count_images: { type: 'integer', example: 42 },
+          count_labels: { type: 'integer', example: 58 },
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                image_url: { type: 'string' },
+                labels: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      class_id: { type: 'integer', example: 1 },
+                      class_name: { type: 'string', example: 'korosi' },
+                      x_center: { type: 'number', example: 0.39 },
+                      y_center: { type: 'number', example: 0.32 },
+                      w: { type: 'number', example: 0.2 },
+                      h: { type: 'number', example: 0.2 },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     },
