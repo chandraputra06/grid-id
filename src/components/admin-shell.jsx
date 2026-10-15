@@ -159,9 +159,14 @@ export function AdminShell({ children }) {
             </span>
             {/* Widget user — foto default (inisial) + nama, klik → profil */}
             <Link href="/profil" className="flex items-center gap-2 rounded-full border border-outline-variant py-1 pl-1 pr-3 transition hover:bg-surface-container-low">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand font-heading text-sm font-bold text-white">
-                {initials(me?.full_name, me?.email)}
-              </span>
+              {me?.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={me.avatar_url} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
+              ) : (
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand font-heading text-sm font-bold text-white">
+                  {initials(me?.full_name, me?.email)}
+                </span>
+              )}
               <span className="hidden min-w-0 leading-tight sm:block">
                 <span className="block max-w-[140px] truncate font-heading text-[13px] font-bold text-on-surface">{me?.full_name || "Akun Saya"}</span>
                 <span className="block truncate font-body-md text-[11px] capitalize text-on-surface-variant">{me?.role || "—"}</span>

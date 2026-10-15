@@ -44,6 +44,10 @@ function GuestPill({ full = false }) {
 }
 
 function Avatar({ me }) {
+  if (me?.avatar_url) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={me.avatar_url} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />;
+  }
   return (
     <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand font-heading text-sm font-bold text-white">
       {initials(me?.full_name, me?.email)}
