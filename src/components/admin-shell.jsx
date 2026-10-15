@@ -80,6 +80,9 @@ function Sidebar({ pathname, onNavigate, navGroups, onLogout, busy }) {
       </nav>
 
       <div className="space-y-1 border-t border-white/10 p-3">
+        <Link href="/" onClick={onNavigate} className="flex items-center gap-3 rounded-xl px-3 py-2.5 font-heading text-sm font-bold text-white/70 hover:bg-white/10 hover:text-white">
+          <span className="material-symbols-outlined text-[20px]">language</span> Beranda Website
+        </Link>
         <Link href="/profil" onClick={onNavigate} className="flex items-center gap-3 rounded-xl px-3 py-2.5 font-heading text-sm font-bold text-white/70 hover:bg-white/10 hover:text-white">
           <span className="material-symbols-outlined text-[20px]">account_circle</span> Profil Saya
         </Link>

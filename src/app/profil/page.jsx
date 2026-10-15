@@ -160,6 +160,13 @@ export default function Profil() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
+      <button
+        onClick={() => router.back()}
+        className="flex items-center gap-1.5 font-label-bold text-label-bold text-brand transition hover:gap-2.5"
+      >
+        <span className="material-symbols-outlined text-[20px]">arrow_back</span> Kembali
+      </button>
+
       <div>
         <h1 className="font-heading text-2xl font-extrabold text-on-surface">Profil Saya</h1>
         <p className="font-body-md text-body-md text-on-surface-variant">Kelola informasi akun, foto, dan password.</p>
