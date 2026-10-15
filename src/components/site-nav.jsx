@@ -1,8 +1,10 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
 
 const links = [
   { href: "/", label: "Beranda" },
@@ -16,8 +18,16 @@ function LogoMark() {
   return <Image src="/grid-logos.png" alt="" width={30} height={42} priority />;
 }
 
-/* amber pill: "Login" white text + inset cream pill "Cek Resiko Lokasimu" */
-function AuthPill({ full = false }) {
+function initials(name, email) {
+  const src = (name || "").trim() || (email || "").trim();
+  if (!src) return "?";
+  const parts = src.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return src.slice(0, 2).toUpperCase();
+}
+
+/* Belum login: pill amber "Login" + "Cek Resiko Lokasimu" */
+function GuestPill({ full = false }) {
   return (
     <div className={`flex items-center gap-1 rounded-full bg-accent py-1.5 pl-5 pr-1.5 ${full ? "w-full justify-between" : ""}`}>
       <Link href="/masuk" className="px-2 font-heading text-[15px] font-bold text-white transition hover:brightness-95">
@@ -31,6 +41,81 @@ function AuthPill({ full = false }) {
       </Link>
     </div>
   );
+}
+
+/* Sudah login: chip user (foto default + nama) + tombol Logout */
+function UserPill({ me, onLogout, busy, full = false }) {
+  return (
+    <div className={`flex items-center gap-2 ${full ? "w-full" : ""}`}>
+      <Link
+        href="/profil"
+        className={`flex items-center gap-2 rounded-full border border-outline-variant bg-card-surface py-1 pl-1 pr-3 transition hover:bg-surface-container-low ${full ? "flex-1" : ""}`}
+      >
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand font-heading text-sm font-bold text-white">
+          {initials(me?.full_name, me?.email)}
+        </span>
+        <span className="min-w-0 leading-tight">
+          <span className="block truncate font-heading text-[14px] font-bold text-brand">{me?.full_name || "Akun Saya"}</span>
+          <span className="block truncate font-body-md text-[11px] capitalize text-on-surface-variant">{me?.role || "warga"}</span>
+        </span>
+      </Link>
+      <button
+        onClick={onLogout}
+        disabled={busy}
+        className="flex items-center gap-1.5 rounded-full bg-accent px-5 py-2.5 font-heading text-[15px] font-bold text-white shadow-sm transition hover:brightness-95 active:scale-95 disabled:opacity-60"
+      >
+        <span className="material-symbols-outlined text-[18px]">{busy ? "hourglass_top" : "logout"}</span>
+        {busy ? "Keluar…" : "Logout"}
+      </button>
+    </div>
+  );
+}
+
+function AuthArea({ full = false }) {
+  const router = useRouter();
+  const [me, setMe] = useState(null);
+  const [ready, setReady] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  async function refresh() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      setMe(null);
+      setReady(true);
+      return;
+    }
+    try {
+      const data = await api.get("/api/me");
+      setMe(data);
+    } catch {
+      setMe(null);
+    } finally {
+      setReady(true);
+    }
+  }
+
+  useEffect(() => {
+    refresh();
+    const { data: sub } = supabase.auth.onAuthStateChange(() => refresh());
+    return () => sub?.subscription?.unsubscribe();
+  }, []);
+
+  async function logout() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await supabase.auth.signOut();
+      setMe(null);
+    } finally {
+      setBusy(false);
+      router.replace("/masuk");
+    }
+  }
+
+  // Hindari kedip "Login" sebelum status auth diketahui
+  if (!ready) return <div className={full ? "h-12 w-full" : "h-12 w-[260px]"} aria-hidden />;
+  if (!me) return <GuestPill full={full} />;
+  return <UserPill me={me} onLogout={logout} busy={busy} full={full} />;
 }
 
 export function SiteNav() {
@@ -65,9 +150,9 @@ export function SiteNav() {
           })}
         </div>
 
-        {/* Auth pill — desktop */}
+        {/* Auth area — desktop */}
         <div className="hidden lg:block">
-          <AuthPill />
+          <AuthArea />
         </div>
 
         {/* Hamburger — mobile/tablet */}
@@ -101,7 +186,7 @@ export function SiteNav() {
             })}
           </div>
           <div className="mt-4" onClick={() => setOpen(false)}>
-            <AuthPill full />
+            <AuthArea full />
           </div>
         </div>
       )}

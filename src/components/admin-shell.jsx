@@ -1,7 +1,9 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
 
 const groups = [
   {
@@ -25,7 +27,21 @@ const groups = [
   },
 ];
 
-function Sidebar({ pathname, onNavigate }) {
+// Menu khusus admin — digabung saat role diketahui
+const adminGroup = {
+  label: "Administrasi",
+  items: [{ icon: "manage_accounts", label: "Manajemen User", href: "/dashboard/pengguna" }],
+};
+
+function initials(name, email) {
+  const src = (name || "").trim() || (email || "").trim();
+  if (!src) return "A";
+  const parts = src.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return src.slice(0, 2).toUpperCase();
+}
+
+function Sidebar({ pathname, onNavigate, navGroups, onLogout, busy }) {
   return (
     <div className="flex h-full w-64 flex-col bg-[#0f1c3f] text-white/70">
       <div className="flex items-center gap-2.5 border-b border-white/10 px-5 py-4">
@@ -37,7 +53,7 @@ function Sidebar({ pathname, onNavigate }) {
       </div>
 
       <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
-        {groups.map((g) => (
+        {navGroups.map((g) => (
           <div key={g.label}>
             <p className="px-3 pb-2 font-heading text-[10px] font-bold uppercase tracking-wider text-white/35">{g.label}</p>
             <ul className="space-y-1">
@@ -64,12 +80,19 @@ function Sidebar({ pathname, onNavigate }) {
       </nav>
 
       <div className="space-y-1 border-t border-white/10 p-3">
+        <Link href="/profil" onClick={onNavigate} className="flex items-center gap-3 rounded-xl px-3 py-2.5 font-heading text-sm font-bold text-white/70 hover:bg-white/10 hover:text-white">
+          <span className="material-symbols-outlined text-[20px]">account_circle</span> Profil Saya
+        </Link>
         <Link href="#" className="flex items-center gap-3 rounded-xl px-3 py-2.5 font-heading text-sm font-bold text-white/70 hover:bg-white/10 hover:text-white">
           <span className="material-symbols-outlined text-[20px]">support_agent</span> Bantuan Teknis
         </Link>
-        <Link href="/" className="flex items-center gap-3 rounded-xl px-3 py-2.5 font-heading text-sm font-bold text-red-300 hover:bg-white/10">
-          <span className="material-symbols-outlined text-[20px]">logout</span> Keluar
-        </Link>
+        <button
+          onClick={onLogout}
+          disabled={busy}
+          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 font-heading text-sm font-bold text-red-300 transition-colors hover:bg-white/10 disabled:opacity-60"
+        >
+          <span className="material-symbols-outlined text-[20px]">{busy ? "hourglass_top" : "logout"}</span> {busy ? "Keluar…" : "Keluar"}
+        </button>
       </div>
     </div>
   );
@@ -77,19 +100,46 @@ function Sidebar({ pathname, onNavigate }) {
 
 export function AdminShell({ children }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [drawer, setDrawer] = useState(false);
+  const [me, setMe] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await api.get("/api/me");
+        setMe(data);
+      } catch {
+        setMe(null);
+      }
+    })();
+  }, []);
+
+  async function logout() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await supabase.auth.signOut();
+    } finally {
+      setBusy(false);
+      router.replace("/masuk");
+    }
+  }
+
+  const navGroups = me?.role === "admin" ? [...groups, adminGroup] : groups;
 
   return (
     <div className="flex min-h-screen bg-surface-container-low">
       <aside className="sticky top-0 hidden h-screen shrink-0 lg:block">
-        <Sidebar pathname={pathname} />
+        <Sidebar pathname={pathname} navGroups={navGroups} onLogout={logout} busy={busy} />
       </aside>
 
       {drawer && (
         <div className="fixed inset-0 z-[700] lg:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setDrawer(false)} />
           <div className="absolute left-0 top-0 h-full">
-            <Sidebar pathname={pathname} onNavigate={() => setDrawer(false)} />
+            <Sidebar pathname={pathname} onNavigate={() => setDrawer(false)} navGroups={navGroups} onLogout={logout} busy={busy} />
           </div>
         </div>
       )}
@@ -107,7 +157,16 @@ export function AdminShell({ children }) {
             <span className="grid h-10 w-10 place-items-center rounded-full text-on-surface-variant hover:bg-surface-container-low">
               <span className="material-symbols-outlined">notifications</span>
             </span>
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-brand font-heading text-sm font-bold text-white">A</span>
+            {/* Widget user — foto default (inisial) + nama, klik → profil */}
+            <Link href="/profil" className="flex items-center gap-2 rounded-full border border-outline-variant py-1 pl-1 pr-3 transition hover:bg-surface-container-low">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand font-heading text-sm font-bold text-white">
+                {initials(me?.full_name, me?.email)}
+              </span>
+              <span className="hidden min-w-0 leading-tight sm:block">
+                <span className="block max-w-[140px] truncate font-heading text-[13px] font-bold text-on-surface">{me?.full_name || "Akun Saya"}</span>
+                <span className="block truncate font-body-md text-[11px] capitalize text-on-surface-variant">{me?.role || "—"}</span>
+              </span>
+            </Link>
           </div>
         </header>
 
