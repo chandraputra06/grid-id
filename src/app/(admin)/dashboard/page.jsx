@@ -9,22 +9,51 @@ const LEVEL = {
   aman: { label: "AMAN", tone: "bg-risk-aman", text: "text-risk-aman", box: "border-risk-aman/30 bg-risk-aman/5", icon: "check_circle" },
 };
 
-// Cuaca masih statis sementara (menunggu wiring /api/cuaca).
-const cuaca = [
-  ["Jakarta Raya", "32°", "Cerah", "Rendah", "text-risk-aman"],
-  ["Surabaya", "30°", "Berawan", "Rendah", "text-risk-aman"],
-  ["Medan", "26°", "Hujan Deras", "Menengah", "text-risk-waspada"],
-];
+// Tingkat risiko cuaca dari faktor BMKG (angin & hujan).
+function riskFromFactors(f) {
+  const angin = f.angin_max_kmh || 0;
+  if (angin >= 40 || (f.hujan && angin >= 25)) return { riskLabel: "Tinggi", riskTone: "text-risk-kritis" };
+  if (f.hujan || angin >= 25) return { riskLabel: "Menengah", riskTone: "text-risk-waspada" };
+  return { riskLabel: "Rendah", riskTone: "text-risk-aman" };
+}
 
 export default function AdminBeranda() {
   const [data, setData] = useState(null);
   const [points, setPoints] = useState([]);
+  const [weather, setWeather] = useState(null); // null = memuat
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
+
+  async function loadWeather(areas) {
+    if (!areas.length) {
+      setWeather([]);
+      return;
+    }
+    const results = await Promise.all(
+      areas.map(async (ar) => {
+        try {
+          const w = await api.get(`/api/cuaca?adm4=${encodeURIComponent(ar.adm4)}`);
+          const f = w?.factors || {};
+          const near = (w?.forecast || [])[0] || {};
+          return {
+            adm4: ar.adm4,
+            label: ar.label,
+            temp: f.suhu_avg != null ? Math.round(f.suhu_avg) : near.t ?? null,
+            desc: near.weather_desc || (f.hujan ? "Hujan" : "—"),
+            ...riskFromFactors(f),
+          };
+        } catch {
+          return null;
+        }
+      })
+    );
+    setWeather(results.filter(Boolean));
+  }
 
   async function load() {
     setLoading(true);
     setErr("");
+    setWeather(null);
     try {
       const d = await api.get("/api/dashboard");
       setData(d);
@@ -33,30 +62,44 @@ export default function AdminBeranda() {
     } finally {
       setLoading(false);
     }
-    // Peta (opsional, tidak memblok dashboard bila gagal)
+    // Peta + cuaca (opsional, tidak memblok dashboard bila gagal)
     api
       .get("/api/dashboard/geojson")
       .then((g) => {
         const feats = g?.features || [];
-        setPoints(
-          feats
-            .map((f) => {
-              const p = f.properties || {};
-              const [lng, lat] = f.geometry?.coordinates || [];
-              return {
-                id: p.id,
-                nama: p.name || p.asset_code,
-                level: p.level || "aman",
-                skor: p.score != null ? Math.round(p.score) : null,
-                ket: [p.unit, p.asset_type].filter(Boolean).join(" · "),
-                lat,
-                lng,
-              };
-            })
-            .filter((z) => z.lat != null && z.lng != null)
-        );
+        const pts = feats
+          .map((f) => {
+            const p = f.properties || {};
+            const [lng, lat] = f.geometry?.coordinates || [];
+            return {
+              id: p.id,
+              nama: p.name || p.asset_code,
+              level: p.level || "aman",
+              skor: p.score != null ? Math.round(p.score) : null,
+              ket: [p.unit, p.asset_type].filter(Boolean).join(" · "),
+              lat,
+              lng,
+            };
+          })
+          .filter((z) => z.lat != null && z.lng != null);
+        setPoints(pts);
+
+        // adm4 unik (maks 3) untuk kartu cuaca
+        const seen = new Set();
+        const areas = [];
+        for (const f of feats) {
+          const p = f.properties || {};
+          if (p.adm4 && !seen.has(p.adm4)) {
+            seen.add(p.adm4);
+            areas.push({ adm4: p.adm4, label: p.unit || p.name || p.adm4 });
+            if (areas.length >= 3) break;
+          }
+        }
+        loadWeather(areas);
       })
-      .catch(() => {});
+      .catch(() => {
+        setWeather([]);
+      });
   }
 
   useEffect(() => {
@@ -145,15 +188,21 @@ export default function AdminBeranda() {
             <span className="rounded-full bg-surface-container-low px-2 py-0.5 font-label-sm text-label-sm text-on-surface-variant">Sumber: BMKG</span>
           </div>
           <ul className="mt-4 space-y-3">
-            {cuaca.map(([kota, suhu, ket, risk, tone]) => (
-              <li key={kota} className="flex items-center justify-between rounded-xl bg-surface-container-low p-3">
-                <div>
-                  <p className="font-heading text-sm font-bold">{kota}</p>
-                  <p className="font-body-md text-[12px] text-on-surface-variant">{ket} · Risiko: <span className={tone}>{risk}</span></p>
-                </div>
-                <span className="font-heading text-2xl font-extrabold text-brand">{suhu}</span>
-              </li>
-            ))}
+            {weather === null ? (
+              <li className="rounded-xl bg-surface-container-low p-3 text-center font-body-md text-[12px] text-on-surface-variant">Memuat cuaca…</li>
+            ) : weather.length === 0 ? (
+              <li className="rounded-xl bg-surface-container-low p-3 text-center font-body-md text-[12px] text-on-surface-variant">Data cuaca belum tersedia.</li>
+            ) : (
+              weather.map((w) => (
+                <li key={w.adm4} className="flex items-center justify-between rounded-xl bg-surface-container-low p-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-heading text-sm font-bold">{w.label}</p>
+                    <p className="font-body-md text-[12px] text-on-surface-variant">{w.desc} · Risiko: <span className={w.riskTone}>{w.riskLabel}</span></p>
+                  </div>
+                  <span className="font-heading text-2xl font-extrabold text-brand">{w.temp != null ? `${w.temp}°` : "—"}</span>
+                </li>
+              ))
+            )}
           </ul>
         </div>
       </div>
