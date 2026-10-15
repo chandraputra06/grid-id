@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { PetaMap } from "@/components/peta-map";
 
 const LEVEL = {
   kritis: { label: "KRITIS", tone: "bg-risk-kritis", text: "text-risk-kritis", box: "border-risk-kritis/30 bg-risk-kritis/5", icon: "warning" },
@@ -17,6 +18,7 @@ const cuaca = [
 
 export default function AdminBeranda() {
   const [data, setData] = useState(null);
+  const [points, setPoints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
@@ -31,6 +33,30 @@ export default function AdminBeranda() {
     } finally {
       setLoading(false);
     }
+    // Peta (opsional, tidak memblok dashboard bila gagal)
+    api
+      .get("/api/dashboard/geojson")
+      .then((g) => {
+        const feats = g?.features || [];
+        setPoints(
+          feats
+            .map((f) => {
+              const p = f.properties || {};
+              const [lng, lat] = f.geometry?.coordinates || [];
+              return {
+                id: p.id,
+                nama: p.name || p.asset_code,
+                level: p.level || "aman",
+                skor: p.score != null ? Math.round(p.score) : null,
+                ket: [p.unit, p.asset_type].filter(Boolean).join(" · "),
+                lat,
+                lng,
+              };
+            })
+            .filter((z) => z.lat != null && z.lng != null)
+        );
+      })
+      .catch(() => {});
   }
 
   useEffect(() => {
@@ -100,11 +126,17 @@ export default function AdminBeranda() {
             <span>Waspada: <b className="text-risk-waspada">{lv.waspada}</b></span>
             <span>Aman: <b className="text-risk-aman">{lv.aman}</b></span>
           </div>
-          <div className="mt-3 grid h-60 place-items-center rounded-xl bg-gradient-to-br from-surface-container-low to-surface-container text-on-surface-variant">
-            <div className="text-center">
-              <span className="material-symbols-outlined text-5xl text-brand">public</span>
-              <p className="mt-2 font-body-md text-[13px]">Peta sebaran aset (integrasi Leaflet menyusul)</p>
-            </div>
+          <div className="mt-3 h-60 overflow-hidden rounded-xl">
+            {points.length > 0 ? (
+              <PetaMap zona={points} />
+            ) : (
+              <div className="grid h-full place-items-center bg-gradient-to-br from-surface-container-low to-surface-container text-on-surface-variant">
+                <div className="text-center">
+                  <span className="material-symbols-outlined text-5xl text-brand">public</span>
+                  <p className="mt-2 font-body-md text-[13px]">Belum ada aset dengan koordinat untuk dipetakan.</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <div className="rounded-2xl border border-outline-variant bg-card-surface p-5 shadow-sm">
