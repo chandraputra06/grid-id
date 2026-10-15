@@ -45,8 +45,18 @@ function GuestPill({ full = false }) {
 
 /* Sudah login: chip user (foto default + nama) + tombol Logout */
 function UserPill({ me, onLogout, busy, full = false }) {
+  const canDashboard = me?.role === "admin" || me?.role === "petugas";
   return (
     <div className={`flex items-center gap-2 ${full ? "w-full" : ""}`}>
+      {canDashboard && (
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-1.5 rounded-full bg-brand px-4 py-2.5 font-heading text-[15px] font-bold text-white shadow-sm transition hover:brightness-110 active:scale-95"
+        >
+          <span className="material-symbols-outlined text-[18px]">dashboard</span>
+          Dashboard
+        </Link>
+      )}
       <Link
         href="/profil"
         className={`flex items-center gap-2 rounded-full border border-outline-variant bg-card-surface py-1 pl-1 pr-3 transition hover:bg-surface-container-low ${full ? "flex-1" : ""}`}
