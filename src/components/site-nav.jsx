@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { api } from "@/lib/api";
 
@@ -43,40 +43,102 @@ function GuestPill({ full = false }) {
   );
 }
 
-/* Sudah login: chip user (foto default + nama) + tombol Logout */
+function Avatar({ me }) {
+  return (
+    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand font-heading text-sm font-bold text-white">
+      {initials(me?.full_name, me?.email)}
+    </span>
+  );
+}
+
+function NameRole({ me }) {
+  return (
+    <span className="min-w-0 leading-tight">
+      <span className="block truncate font-heading text-[14px] font-bold text-brand">{me?.full_name || "Akun Saya"}</span>
+      <span className="block truncate font-body-md text-[11px] capitalize text-on-surface-variant">{me?.role || "warga"}</span>
+    </span>
+  );
+}
+
+/* Tombol logout: ikon pintu keluar saja */
+function LogoutBtn({ onLogout, busy }) {
+  return (
+    <button
+      onClick={onLogout}
+      disabled={busy}
+      aria-label="Logout"
+      title="Logout"
+      className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent text-white shadow-sm transition hover:brightness-95 active:scale-95 disabled:opacity-60"
+    >
+      <span className="material-symbols-outlined text-[22px]">{busy ? "hourglass_top" : "logout"}</span>
+    </button>
+  );
+}
+
+function MenuLink({ href, icon, label, onClick }) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className="flex items-center gap-3 px-4 py-2.5 font-heading text-[14px] font-bold text-brand transition-colors hover:bg-surface-container-low"
+    >
+      <span className="material-symbols-outlined text-[20px]">{icon}</span>
+      {label}
+    </Link>
+  );
+}
+
+/* Sudah login: chip user + logout ikon.
+   Admin/Petugas → chip jadi dropdown (Dashboard / Profil). Warga → chip langsung ke profil. */
 function UserPill({ me, onLogout, busy, full = false }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
   const canDashboard = me?.role === "admin" || me?.role === "petugas";
+
+  useEffect(() => {
+    function onDoc(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+
+  if (!canDashboard) {
+    return (
+      <div className={`flex items-center gap-2 ${full ? "w-full" : ""}`}>
+        <Link
+          href="/profil"
+          className={`flex items-center gap-2 rounded-full border border-outline-variant bg-card-surface py-1 pl-1 pr-3 transition hover:bg-surface-container-low ${full ? "flex-1" : ""}`}
+        >
+          <Avatar me={me} />
+          <NameRole me={me} />
+        </Link>
+        <LogoutBtn onLogout={onLogout} busy={busy} />
+      </div>
+    );
+  }
+
   return (
     <div className={`flex items-center gap-2 ${full ? "w-full" : ""}`}>
-      {canDashboard && (
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-1.5 rounded-full bg-brand px-4 py-2.5 font-heading text-[15px] font-bold text-white shadow-sm transition hover:brightness-110 active:scale-95"
+      <div className={`relative ${full ? "flex-1" : ""}`} ref={ref}>
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className={`flex items-center gap-2 rounded-full border border-outline-variant bg-card-surface py-1 pl-1 pr-2 transition hover:bg-surface-container-low ${full ? "w-full" : ""}`}
         >
-          <span className="material-symbols-outlined text-[18px]">dashboard</span>
-          Dashboard
-        </Link>
-      )}
-      <Link
-        href="/profil"
-        className={`flex items-center gap-2 rounded-full border border-outline-variant bg-card-surface py-1 pl-1 pr-3 transition hover:bg-surface-container-low ${full ? "flex-1" : ""}`}
-      >
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand font-heading text-sm font-bold text-white">
-          {initials(me?.full_name, me?.email)}
-        </span>
-        <span className="min-w-0 leading-tight">
-          <span className="block truncate font-heading text-[14px] font-bold text-brand">{me?.full_name || "Akun Saya"}</span>
-          <span className="block truncate font-body-md text-[11px] capitalize text-on-surface-variant">{me?.role || "warga"}</span>
-        </span>
-      </Link>
-      <button
-        onClick={onLogout}
-        disabled={busy}
-        className="flex items-center gap-1.5 rounded-full bg-accent px-5 py-2.5 font-heading text-[15px] font-bold text-white shadow-sm transition hover:brightness-95 active:scale-95 disabled:opacity-60"
-      >
-        <span className="material-symbols-outlined text-[18px]">{busy ? "hourglass_top" : "logout"}</span>
-        {busy ? "Keluar…" : "Logout"}
-      </button>
+          <Avatar me={me} />
+          <NameRole me={me} />
+          <span className="material-symbols-outlined ml-auto text-[18px] text-on-surface-variant">
+            {open ? "expand_less" : "expand_more"}
+          </span>
+        </button>
+        {open && (
+          <div className="absolute right-0 top-[calc(100%+8px)] z-[700] w-56 overflow-hidden rounded-2xl border border-outline-variant bg-card-surface py-1 shadow-lg">
+            <MenuLink href="/dashboard" icon="dashboard" label="Dashboard" onClick={() => setOpen(false)} />
+            <MenuLink href="/profil" icon="account_circle" label="Profil Saya" onClick={() => setOpen(false)} />
+          </div>
+        )}
+      </div>
+      <LogoutBtn onLogout={onLogout} busy={busy} />
     </div>
   );
 }
@@ -134,8 +196,8 @@ export function SiteNav() {
 
   return (
     <header className="sticky top-0 z-[600] w-full border-b border-outline-variant/40 bg-card-surface/95 backdrop-blur">
-      <nav className="relative mx-auto flex h-20 max-w-[1200px] items-center justify-between px-gutter">
-        <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
+      <nav className="mx-auto flex h-20 max-w-[1200px] items-center justify-between gap-4 px-gutter">
+        <Link href="/" className="flex shrink-0 items-center gap-2" onClick={() => setOpen(false)}>
           <LogoMark />
           <span className="font-heading text-xl font-extrabold tracking-tight text-brand sm:text-2xl">
             GRID<span className="text-accent">·</span>ID
@@ -143,7 +205,7 @@ export function SiteNav() {
         </Link>
 
         {/* Center links — desktop */}
-        <div className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 lg:flex">
+        <div className="hidden flex-1 items-center justify-center gap-1 lg:flex">
           {links.map((l) => {
             const active = pathname === l.href;
             return (
@@ -161,7 +223,7 @@ export function SiteNav() {
         </div>
 
         {/* Auth area — desktop */}
-        <div className="hidden lg:block">
+        <div className="hidden shrink-0 lg:block">
           <AuthArea />
         </div>
 
