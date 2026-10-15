@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCamera,
@@ -11,7 +12,12 @@ import {
   faImage,
   faRotateLeft,
   faXmark,
+  faPaperPlane,
+  faSpinner,
+  faLocationDot,
 } from "@fortawesome/free-solid-svg-icons";
+import { supabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
 
 const LOAD_DURATION_MS = 2000;
 const QUOTES = [
@@ -19,13 +25,25 @@ const QUOTES = [
   "Please wait, sebentar lagi siap digunakan...",
   "Hampir selesai, kamera akan segera terbuka...",
 ];
+const DEFECT = { isolator_pecah: "Isolator pecah", korosi: "Korosi", kabel_bermasalah: "Kabel bermasalah", komponen_hilang: "Komponen hilang" };
 
 export default function Lapor() {
+  const router = useRouter();
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const [preview, setPreview] = useState("");
   const [fileName, setFileName] = useState("");
+  const [photoFile, setPhotoFile] = useState(null);
+
+  // Form kirim
+  const [desc, setDesc] = useState("");
+  const [lat, setLat] = useState(null);
+  const [lng, setLng] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitErr, setSubmitErr] = useState("");
+  const [sent, setSent] = useState(null); // { report, scan }
 
   // Loading screen
   const [showLoader, setShowLoader] = useState(false);
@@ -40,7 +58,6 @@ export default function Lapor() {
   const [retryKey, setRetryKey] = useState(0);
   const [flash, setFlash] = useState(false);
 
-  // Semua tombol di kotak scan: loading 5 detik lalu buka kamera
   function startLoading() {
     setProgress(0);
     setQuoteIndex(0);
@@ -68,12 +85,28 @@ export default function Lapor() {
     if (preview) URL.revokeObjectURL(preview);
     setPreview(URL.createObjectURL(file));
     setFileName(file.name);
+    setPhotoFile(file);
+    setSent(null);
+    setSubmitErr("");
   }
 
   function resetScan() {
     if (preview) URL.revokeObjectURL(preview);
     setPreview("");
     setFileName("");
+    setPhotoFile(null);
+    setDesc("");
+    setLat(null);
+    setLng(null);
+    setSent(null);
+    setSubmitErr("");
+  }
+
+  // Pilih foto dari galeri
+  function onPickGallery(e) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file) setPhoto(file);
   }
 
   // Ambil foto dari video kamera
@@ -85,7 +118,6 @@ export default function Lapor() {
     canvas.height = video.videoHeight;
     canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Efek kilatan putih seperti kamera beneran
     setFlash(true);
     setTimeout(() => setFlash(false), 200);
 
@@ -103,7 +135,58 @@ export default function Lapor() {
 
   useEffect(() => () => preview && URL.revokeObjectURL(preview), [preview]);
 
-  // Loading 5 detik: progress bar + ganti quote, lalu buka kamera
+  // Ambil lokasi (best-effort) saat foto siap
+  useEffect(() => {
+    if (!photoFile || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLat(pos.coords.latitude);
+        setLng(pos.coords.longitude);
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  }, [photoFile]);
+
+  async function submit() {
+    if (submitting || !photoFile) return;
+    setSubmitErr("");
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      router.push("/masuk");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const ext = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
+      const sign = await api.post("/api/uploads/sign", { ext });
+      const up = await supabase.storage.from(sign.bucket).uploadToSignedUrl(sign.path, sign.token, photoFile);
+      if (up.error) throw new Error(up.error.message);
+
+      const report = await api.post("/api/reports", {
+        photo_url: sign.public_url,
+        description: desc || null,
+        lat,
+        lng,
+        source: "warga",
+      });
+
+      // Jalankan scan AI — jangan gagalkan laporan kalau scan error.
+      let scan = null;
+      try {
+        scan = await api.post("/api/scan", { report_id: report.id });
+      } catch {
+        scan = null;
+      }
+      setSent({ report, scan });
+    } catch (e) {
+      setSubmitErr(e?.message || "Gagal mengirim laporan. Coba lagi.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  // Loading bar -> buka kamera
   useEffect(() => {
     if (!showLoader) return;
     const start = Date.now();
@@ -121,7 +204,6 @@ export default function Lapor() {
     return () => clearInterval(tick);
   }, [showLoader]);
 
-  // Nyalakan kamera saat layar kamera tampil (ulang saat ganti kamera atau coba lagi)
   useEffect(() => {
     if (!showCamera) return;
     let cancelled = false;
@@ -164,7 +246,6 @@ export default function Lapor() {
     };
   }, [showCamera, facingMode, retryKey]);
 
-  // Kunci scroll saat overlay tampil + tutup dengan tombol Esc
   useEffect(() => {
     if (!showLoader && !showCamera) return;
     const prevOverflow = document.body.style.overflow;
@@ -181,140 +262,76 @@ export default function Lapor() {
     };
   }, [showLoader, showCamera]);
 
+  const dets = sent?.scan?.detections || [];
+
   return (
     <div className="relative isolate min-h-screen bg-[url('/bg-scan.png')] bg-cover bg-center bg-no-repeat">
-      {/* Cover gradient biru tua -> biru cerah di atas background image */}
       <div className="absolute inset-0 -z-10 bg-linear-to-br from-[#0A1F44] to-[#1E90FF] opacity-80" />
 
-      {/* Loading screen layar penuh (di-portal ke body supaya menutupi navbar juga) */}
+      {/* input galeri tersembunyi */}
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onPickGallery} />
+
       {showLoader &&
         createPortal(
           <div className="fixed inset-0 z-100 flex items-center justify-center bg-[#0A1F44E6] p-5">
             <div className="animate-quote-fade relative w-full max-w-sm rounded-2xl bg-white px-6 pb-6 pt-5 text-center shadow-[0_10px_40px_#00000080]">
-              {/* Tombol X */}
-              <button
-                type="button"
-                onClick={closeLoader}
-                aria-label="Tutup"
-                className="absolute -right-3 -top-3 grid h-9 w-9 place-items-center rounded-full border-2 border-white bg-[#0020a1] text-white shadow-[0_4px_10px_#00000059] transition hover:scale-110 hover:bg-[#991B1B]"
-              >
+              <button type="button" onClick={closeLoader} aria-label="Tutup" className="absolute -right-3 -top-3 grid h-9 w-9 place-items-center rounded-full border-2 border-white bg-[#0020a1] text-white shadow-[0_4px_10px_#00000059] transition hover:scale-110 hover:bg-[#991B1B]">
                 <FontAwesomeIcon icon={faXmark} className="h-4 w-4" />
               </button>
-
-              <img
-                src="/maskot-loading.png"
-                alt="Maskot"
-                className="animate-mascot-bounce mx-auto mb-4 h-28 w-auto object-contain"
-              />
-
-              {/* Loading bar */}
+              <img src="/maskot-loading.png" alt="Maskot" className="animate-mascot-bounce mx-auto mb-4 h-28 w-auto object-contain" />
               <div className="h-3 w-full overflow-hidden rounded-full bg-[#E0F2FE]">
-                <div
-                  className="h-full rounded-full bg-linear-to-r from-[#38BDF8] to-[#0020a1] transition-[width] duration-100 ease-linear"
-                  style={{ width: `${progress}%` }}
-                />
+                <div className="h-full rounded-full bg-linear-to-r from-[#38BDF8] to-[#0020a1] transition-[width] duration-100 ease-linear" style={{ width: `${progress}%` }} />
               </div>
               <p className="mt-2 font-label-sm text-label-sm text-[#0369A1]">{Math.round(progress)}%</p>
-
-              {/* Quote berganti 3 variasi */}
-              <p key={quoteIndex} className="animate-quote-fade mt-3 min-h-12 font-body-md text-body-md text-[#0A1F44]">
-                {QUOTES[quoteIndex]}
-              </p>
+              <p key={quoteIndex} className="animate-quote-fade mt-3 min-h-12 font-body-md text-body-md text-[#0A1F44]">{QUOTES[quoteIndex]}</p>
             </div>
           </div>,
           document.body
         )}
 
-      {/* Layar kamera live (layar penuh) dengan animasi buka diafragma */}
       {showCamera &&
         createPortal(
           <div className="animate-camera-open fixed inset-0 z-110 flex flex-col bg-[#000000]">
-            {/* Bar atas */}
             <div className="flex items-center justify-between bg-[#0A1F44] px-4 py-3 text-white">
               <div className="flex items-center gap-2 font-label-bold text-label-bold">
                 <FontAwesomeIcon icon={faCamera} className="h-4 w-4" /> Scan kondisi jaringan
               </div>
-              <button
-                type="button"
-                onClick={closeCamera}
-                aria-label="Tutup kamera"
-                className="grid h-9 w-9 place-items-center rounded-full bg-[#FFFFFF26] text-white transition hover:bg-[#991B1B]"
-              >
+              <button type="button" onClick={closeCamera} aria-label="Tutup kamera" className="grid h-9 w-9 place-items-center rounded-full bg-[#FFFFFF26] text-white transition hover:bg-[#991B1B]">
                 <FontAwesomeIcon icon={faXmark} className="h-4 w-4" />
               </button>
             </div>
-
-            {/* Area video */}
             <div className="relative flex-1 overflow-hidden">
               {cameraError ? (
                 <div className="flex h-full flex-col items-center justify-center gap-4 px-8 text-center">
                   <FontAwesomeIcon icon={faExclamationTriangle} className="h-10 w-10 text-[#FF4D4D]" />
                   <p className="max-w-sm font-body-md text-body-md text-white">{cameraError}</p>
-                  <button
-                    type="button"
-                    onClick={() => setRetryKey((k) => k + 1)}
-                    className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-[#38BDF8] to-[#0020a1] px-6 py-3 font-label-bold text-label-bold text-white shadow-md transition hover:-translate-y-1"
-                  >
+                  <button type="button" onClick={() => setRetryKey((k) => k + 1)} className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-[#38BDF8] to-[#0020a1] px-6 py-3 font-label-bold text-label-bold text-white shadow-md transition hover:-translate-y-1">
                     <FontAwesomeIcon icon={faRotateLeft} className="h-4 w-4" /> Coba Lagi
                   </button>
                 </div>
               ) : (
                 <>
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    onLoadedData={() => setCameraReady(true)}
-                    className={`h-full w-full object-cover transition-opacity duration-700 ${cameraReady ? "opacity-100" : "opacity-0"} ${facingMode === "user" ? "-scale-x-100" : ""}`}
-                  />
-
-                  {/* Teks saat kamera menyala */}
-                  {!cameraReady && (
-                    <p className="absolute inset-0 grid place-items-center font-label-sm text-label-sm text-white">
-                      Menyalakan kamera...
-                    </p>
-                  )}
-
-                  {/* Bingkai viewfinder */}
+                  <video ref={videoRef} autoPlay playsInline muted onLoadedData={() => setCameraReady(true)} className={`h-full w-full object-cover transition-opacity duration-700 ${cameraReady ? "opacity-100" : "opacity-0"} ${facingMode === "user" ? "-scale-x-100" : ""}`} />
+                  {!cameraReady && <p className="absolute inset-0 grid place-items-center font-label-sm text-label-sm text-white">Menyalakan kamera...</p>}
                   <div className="animate-viewfinder-in pointer-events-none absolute inset-8 sm:inset-16">
                     <span className="absolute left-0 top-0 h-8 w-8 rounded-tl-lg border-l-4 border-t-4 border-[#FFFFFF]" />
                     <span className="absolute right-0 top-0 h-8 w-8 rounded-tr-lg border-r-4 border-t-4 border-[#FFFFFF]" />
                     <span className="absolute bottom-0 left-0 h-8 w-8 rounded-bl-lg border-b-4 border-l-4 border-[#FFFFFF]" />
                     <span className="absolute bottom-0 right-0 h-8 w-8 rounded-br-lg border-b-4 border-r-4 border-[#FFFFFF]" />
                   </div>
-
-                  <p className="pointer-events-none absolute left-0 right-0 top-8 text-center font-label-sm text-label-sm text-white drop-shadow-[0_1px_4px_#000000CC]">
-                    Arahkan ke tiang atau kabel dari jarak minimal 5 meter
-                  </p>
+                  <p className="pointer-events-none absolute left-0 right-0 top-8 text-center font-label-sm text-label-sm text-white drop-shadow-[0_1px_4px_#000000CC]">Arahkan ke tiang atau kabel dari jarak minimal 5 meter</p>
                 </>
               )}
-
-              {/* Kilatan putih saat foto diambil */}
-              <div
-                className={`pointer-events-none absolute inset-0 bg-[#FFFFFF] transition-opacity duration-200 ${flash ? "opacity-100" : "opacity-0"}`}
-              />
+              <div className={`pointer-events-none absolute inset-0 bg-[#FFFFFF] transition-opacity duration-200 ${flash ? "opacity-100" : "opacity-0"}`} />
             </div>
-
-            {/* Bar bawah: rana + ganti kamera */}
             {!cameraError && (
               <div className="flex items-center justify-center bg-[#0A1F44] px-6 py-5">
                 <div className="grid w-full max-w-sm grid-cols-3 items-center">
                   <div />
-                  <button
-                    type="button"
-                    onClick={capturePhoto}
-                    aria-label="Ambil foto"
-                    className="mx-auto grid h-16 w-16 place-items-center rounded-full border-4 border-[#FFFFFF] transition active:scale-90"
-                  >
+                  <button type="button" onClick={capturePhoto} aria-label="Ambil foto" className="mx-auto grid h-16 w-16 place-items-center rounded-full border-4 border-[#FFFFFF] transition active:scale-90">
                     <span className="block h-12 w-12 rounded-full bg-[#FFFFFF] transition hover:bg-[#BAE6FD]" />
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setFacingMode((m) => (m === "environment" ? "user" : "environment"))}
-                    aria-label="Ganti kamera"
-                    className="ml-auto grid h-11 w-11 place-items-center rounded-full bg-[#FFFFFF26] text-white transition hover:bg-[#FFFFFF4D]"
-                  >
+                  <button type="button" onClick={() => setFacingMode((m) => (m === "environment" ? "user" : "environment"))} aria-label="Ganti kamera" className="ml-auto grid h-11 w-11 place-items-center rounded-full bg-[#FFFFFF26] text-white transition hover:bg-[#FFFFFF4D]">
                     <FontAwesomeIcon icon={faCameraRotate} className="h-5 w-5" />
                   </button>
                 </div>
@@ -328,97 +345,130 @@ export default function Lapor() {
         <div className="mb-6 text-center">
           <h1 className="font-headline-md text-headline-md text-white">Lapor Kondisi Infrastruktur</h1>
           <p className="mt-2 font-body-md text-body-md text-white/85">
-            Ambil foto tiang atau kabel dari jarak aman. Hasil penilaian otomatis akan tersedia setelah koneksi sistem siap.
+            Ambil foto tiang atau kabel dari jarak aman, lalu kirim. Laporanmu masuk ke sistem untuk diverifikasi petugas.
           </p>
         </div>
 
         {/* Peringatan Keselamatan */}
         <div className="group relative mb-6 overflow-hidden rounded-xl border border-[#FCA5A599] bg-linear-to-r from-white to-[#FECACA] p-4 pr-32 sm:pr-40">
           <div className="relative z-10">
-            {/* Capsule: icon + judul */}
             <div className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-[#991B1B] to-[#FF4D4D] px-4 py-1.5 text-white shadow-[0_4px_10px_#DC262659]">
               <FontAwesomeIcon icon={faExclamationTriangle} className="h-4 w-4 shrink-0 text-white" />
               <p className="font-label-bold text-label-bold text-white">Peringatan Keselamatan</p>
             </div>
-
             <p className="mt-2 pl-4 font-body-md text-body-md text-on-surface-variant">
               <span className="font-bold text-[#DC2626]">Jaga jarak aman.</span> Jangan mendekati infrastruktur rusak
               <br />
               dan ambil foto dari jarak <span className="font-bold text-[#DC2626]">minimal 5 meter.</span>
             </p>
           </div>
-
-          {/* Glow merah: fade in setelah maskot pop up, lebih terang saat hover */}
           <div className="pointer-events-none absolute -bottom-4 right-0 h-28 w-28 sm:h-36 sm:w-36">
             <div className="animate-glow-after-pop h-full w-full rounded-full bg-[#FF1F1F] blur-2xl transition-transform duration-500 group-hover:scale-125" />
           </div>
-
-          {/* Maskot slide naik dari bawah, nempel ke bawah box */}
-          <img
-            src="/maskot-lapor.png"
-            alt="Maskot"
-            className="animate-mascot-pop pointer-events-none absolute bottom-0 right-2 z-10 h-20 w-auto object-contain object-bottom transition-[filter] duration-300 group-hover:drop-shadow-[0_0_14px_#FF1F1F] sm:right-4 sm:h-24"
-          />
+          <img src="/maskot-lapor.png" alt="Maskot" className="animate-mascot-pop pointer-events-none absolute bottom-0 right-2 z-10 h-20 w-auto object-contain object-bottom transition-[filter] duration-300 group-hover:drop-shadow-[0_0_14px_#FF1F1F] sm:right-4 sm:h-24" />
         </div>
 
         {/* Card scan */}
         <div className="overflow-hidden rounded-2xl border border-[#FFFFFF66] bg-linear-to-br from-[#BAE6FD] to-[#FEF08A] shadow-[0_4px_12px_#0D1B2A26]">
-          {/* Header */}
           <div className="border-b border-[#FFFFFF80] bg-linear-to-r from-[#BAE6FD] via-[#E0F2FE] to-[#FEF9C3] p-5">
             <div className="flex items-center gap-2 font-label-bold text-label-bold text-primary-container">
               <FontAwesomeIcon icon={faCamera} className="h-4 w-4" /> Scan kondisi jaringan
             </div>
             <p className="mt-1 font-body-md text-body-md text-on-surface-variant">
-              Foto akan tersimpan di halaman ini saja. Belum ada pengiriman atau perhitungan model.
+              Ambil atau pilih foto, tambahkan keterangan, lalu kirim untuk diproses sistem.
             </p>
           </div>
 
           <div className="p-5">
-            {preview ? (
+            {sent ? (
+              /* === SUKSES === */
+              <div className="space-y-4">
+                {preview && (
+                  <div className="overflow-hidden rounded-xl bg-surface-container">
+                    <img src={preview} alt="Foto laporan" className="max-h-110 w-full object-contain" />
+                  </div>
+                )}
+                <div className="rounded-xl bg-[#FFFFFFCC] p-5 text-center">
+                  <FontAwesomeIcon icon={faCheckCircle} className="h-10 w-10 text-risk-aman" />
+                  <h3 className="mt-2 font-headline-sm text-headline-sm text-on-surface">Laporan Terkirim!</h3>
+                  <p className="mt-1 font-body-md text-body-md text-on-surface-variant">
+                    Terima kasih. Laporanmu tersimpan (ID #{String(sent.report?.id || "").slice(0, 8)}) dan akan diverifikasi petugas.
+                  </p>
+                  {sent.scan ? (
+                    dets.length > 0 ? (
+                      <div className="mt-3 inline-flex flex-wrap items-center justify-center gap-2">
+                        <span className="font-label-sm text-label-sm text-on-surface-variant">Indikasi awal AI:</span>
+                        {dets.slice(0, 4).map((d, i) => (
+                          <span key={i} className="rounded-full bg-risk-waspada/15 px-2.5 py-1 text-[11px] font-bold text-risk-waspada">{DEFECT[d.defect] || d.defect}</span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mt-3 font-label-sm text-label-sm text-on-surface-variant">AI belum menemukan indikasi jelas — tetap akan dicek petugas. (Tidak ada deteksi ≠ aman.)</p>
+                    )
+                  ) : null}
+                </div>
+                <button type="button" onClick={resetScan} className="flex w-full items-center justify-center gap-2 rounded-full bg-linear-to-r from-[#38BDF8] to-[#0020a1] py-3.5 font-label-bold text-label-bold text-white shadow-md transition hover:-translate-y-1">
+                  <FontAwesomeIcon icon={faCamera} className="h-4 w-4" /> Lapor Lagi
+                </button>
+              </div>
+            ) : preview ? (
+              /* === PREVIEW + FORM KIRIM === */
               <div className="space-y-4">
                 <div className="overflow-hidden rounded-xl bg-surface-container">
                   <img src={preview} alt="Preview foto kondisi infrastruktur" className="max-h-110 w-full object-contain" />
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <p className="flex items-center gap-2 font-label-sm text-label-sm text-risk-aman">
-                    <FontAwesomeIcon icon={faCheckCircle} className="h-4 w-4" /> Foto siap diproses: {fileName}
+                    <FontAwesomeIcon icon={faCheckCircle} className="h-4 w-4" /> Foto siap: {fileName}
                   </p>
-                  <button
-                    type="button"
-                    onClick={resetScan}
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-outline bg-[#FFFFFFB3] px-5 py-3 font-label-bold text-label-bold text-on-surface transition hover:bg-white"
-                  >
+                  <button type="button" onClick={resetScan} className="inline-flex items-center justify-center gap-2 rounded-full border border-outline bg-[#FFFFFFB3] px-5 py-3 font-label-bold text-label-bold text-on-surface transition hover:bg-white">
                     <FontAwesomeIcon icon={faRotateLeft} className="h-4 w-4" /> Ambil ulang
                   </button>
                 </div>
-                <div className="rounded-xl bg-[#FFFFFFB3] p-4 font-body-md text-body-md text-on-surface-variant">
-                  Foto sudah berhasil dipindai. Penilaian risiko menunggu koneksi model dan belum dihitung.
+
+                <textarea
+                  value={desc}
+                  onChange={(e) => setDesc(e.target.value)}
+                  rows={3}
+                  placeholder="Keterangan (opsional): mis. tiang miring di dekat pasar..."
+                  className="w-full rounded-xl border border-outline bg-[#FFFFFFE6] p-3 font-body-md text-body-md text-on-surface outline-none focus:border-[#0284C7]"
+                />
+
+                <div className="flex items-center gap-2 font-label-sm text-label-sm text-on-surface-variant">
+                  <FontAwesomeIcon icon={faLocationDot} className="h-4 w-4 text-[#0369A1]" />
+                  {lat != null && lng != null
+                    ? `Lokasi terlampir: ${lat.toFixed(4)}, ${lng.toFixed(4)}`
+                    : "Lokasi belum terlampir (izinkan akses lokasi untuk hasil lebih akurat)."}
                 </div>
+
+                {submitErr && <p className="rounded-xl bg-[#FEE2E2] px-3 py-2 text-[13px] font-semibold text-[#DC2626]">{submitErr}</p>}
+
+                <button
+                  type="button"
+                  onClick={submit}
+                  disabled={submitting}
+                  className="flex w-full items-center justify-center gap-2 rounded-full bg-linear-to-r from-[#38BDF8] to-[#0020a1] py-3.5 font-label-bold text-label-bold text-white shadow-md transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_0_28px_#FACC15D9] disabled:opacity-60"
+                >
+                  <FontAwesomeIcon icon={submitting ? faSpinner : faPaperPlane} className={`h-4 w-4 ${submitting ? "animate-spin" : ""}`} />
+                  {submitting ? "Mengirim..." : "Kirim Laporan"}
+                </button>
               </div>
             ) : (
-              <button
-                type="button"
-                onClick={startLoading}
-                className="relative flex min-h-70 w-full flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-[#0284C799] bg-[url('/img-scan.png')] bg-cover bg-center px-6 text-center transition hover:border-[#0284C7]"
-              >
-                {/* Overlay tipis supaya teks tetap terbaca */}
-                <span className="absolute inset-0 bg-[#FFFFFF66]" />
-                <span className="relative mb-4 grid h-16 w-16 place-items-center rounded-full bg-linear-to-br from-[#0369A1] to-[#38BDF8] text-white shadow-[0_6px_14px_#0369A173]">
-                  <FontAwesomeIcon icon={faCamera} className="h-7 w-7" />
-                </span>
-                <span className="relative font-headline-sm text-headline-sm text-[#0369A1]">Buka Kamera untuk Scan</span>
-                <span className="relative mt-2 font-body-md text-body-md text-[#0369A1]">atau pilih foto dari perangkatmu</span>
-              </button>
-            )}
+              /* === PILIH SUMBER FOTO === */
+              <>
+                <button type="button" onClick={startLoading} className="relative flex min-h-70 w-full flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-[#0284C799] bg-[url('/img-scan.png')] bg-cover bg-center px-6 text-center transition hover:border-[#0284C7]">
+                  <span className="absolute inset-0 bg-[#FFFFFF66]" />
+                  <span className="relative mb-4 grid h-16 w-16 place-items-center rounded-full bg-linear-to-br from-[#0369A1] to-[#38BDF8] text-white shadow-[0_6px_14px_#0369A173]">
+                    <FontAwesomeIcon icon={faCamera} className="h-7 w-7" />
+                  </span>
+                  <span className="relative font-headline-sm text-headline-sm text-[#0369A1]">Buka Kamera untuk Scan</span>
+                  <span className="relative mt-2 font-body-md text-body-md text-[#0369A1]">atau pilih foto dari perangkatmu</span>
+                </button>
 
-            {!preview && (
-              <button
-                type="button"
-                onClick={startLoading}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-linear-to-r from-[#38BDF8] to-[#0020a1] py-3.5 font-label-bold text-label-bold text-white shadow-md transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_0_28px_#FACC15D9] hover:drop-shadow-[0_14px_24px_#00000040]"
-              >
-                <FontAwesomeIcon icon={faImage} className="h-4 w-4" /> Pilih Foto dari Galeri
-              </button>
+                <button type="button" onClick={() => fileInputRef.current?.click()} className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-linear-to-r from-[#38BDF8] to-[#0020a1] py-3.5 font-label-bold text-label-bold text-white shadow-md transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_0_28px_#FACC15D9] hover:drop-shadow-[0_14px_24px_#00000040]">
+                  <FontAwesomeIcon icon={faImage} className="h-4 w-4" /> Pilih Foto dari Galeri
+                </button>
+              </>
             )}
           </div>
         </div>
