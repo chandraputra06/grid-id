@@ -38,11 +38,14 @@ app.use('/api/dataset', requireAuth, requireRole('admin', 'hardware'), require('
 // Admin saja
 app.use('/api/users', requireAuth, requireRole('admin'), require('./routes/users'));
 
-// === Route v2 (dimount pada Issue 3 setelah file route-nya dibuat) ===
-// app.use('/api/inspections', requireAuth, requireRole('admin','petugas','supervisor'), require('./routes/inspections'));
-// app.use('/api/assignments', requireAuth, requireRole('admin','petugas','supervisor'), require('./routes/assignments'));
-// app.use('/api/devices',     requireAuth, requireRole('admin','hardware'),             require('./routes/devices'));
-// app.use('/api/maximo',      requireAuth, requireRole('admin','supervisor'),           require('./routes/maximo'));
+// === Route v2 — alur inspeksi, penugasan, verifikasi ===
+app.use('/api/inspections', requireAuth, requireRole('admin', 'petugas', 'supervisor'), require('./routes/inspections'));
+app.use('/api/assignments', requireAuth, requireRole('admin', 'petugas', 'supervisor'), require('./routes/assignments'));
+app.use('/api/review',      requireAuth, requireRole('admin', 'supervisor'),            require('./routes/review'));
+
+// === Route v2 (menyusul di issue berikutnya) ===
+// app.use('/api/devices', requireAuth, requireRole('admin','hardware'),   require('./routes/devices'));
+// app.use('/api/maximo',  requireAuth, requireRole('admin','supervisor'), require('./routes/maximo'));
 
 // 404 + error handler (harus paling bawah)
 app.use(notFound);
