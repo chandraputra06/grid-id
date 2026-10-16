@@ -27,6 +27,11 @@ const groups = [
   },
 ];
 
+// Menu khusus petugas (lapangan)
+const petugasGroup = {
+  label: "Lapangan",
+  items: [{ icon: "assignment", label: "Tugas Saya", href: "/dashboard/tugas" }],
+};
 // Menu khusus supervisor/admin
 const superGroup = {
   label: "Supervisi",
@@ -136,6 +141,7 @@ export function AdminShell({ children }) {
   }
 
   const navGroups = [...groups];
+  if (me?.role === "petugas" || me?.role === "admin") navGroups.push(petugasGroup);
   if (me?.role === "supervisor" || me?.role === "admin") navGroups.push(superGroup);
   if (me?.role === "admin") navGroups.push(adminGroup);
 

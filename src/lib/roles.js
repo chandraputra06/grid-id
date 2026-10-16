@@ -6,7 +6,7 @@
 export const ROLE_HOME = {
   admin: "/dashboard",
   supervisor: "/dashboard",
-  petugas: "/dashboard",
+  petugas: "/dashboard/tugas",
   hardware: "/dashboard",
   warga: "/lapor",
 };
