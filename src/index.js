@@ -46,8 +46,8 @@ app.use('/api/review',      requireAuth, requireRole('admin', 'supervisor'),    
 // === Dummy MAXIMO adapter ===
 app.use('/api/maximo', requireAuth, requireRole('admin', 'supervisor'), require('./routes/maximo'));
 
-// === Route v2 (menyusul di issue berikutnya) ===
-// app.use('/api/devices', requireAuth, requireRole('admin','hardware'), require('./routes/devices'));
+// === Hardware / IoT (role hardware) ===
+app.use('/api/devices', requireAuth, requireRole('admin', 'hardware'), require('./routes/devices'));
 
 // 404 + error handler (harus paling bawah)
 app.use(notFound);
