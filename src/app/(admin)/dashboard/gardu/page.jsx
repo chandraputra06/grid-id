@@ -107,6 +107,20 @@ export default function DetailAset() {
     ? rek.recommendations.slice(0, 3).map((r) => DEFECT[r.defect] || r.defect).join(" + ")
     : "kondisi gabungan sensor & cuaca";
 
+  // Penjelasan penyebab skor (poin 8)
+  const EXPL = rs
+    ? [
+        { key: "Kerusakan (visual AI)", val: rs.severity_component || 0, max: 40, icon: "build", note: "keparahan kerusakan dari deteksi AI — bobot 40%" },
+        { key: "Cuaca (BMKG)", val: rs.weather_component || 0, max: 35, icon: "rainy", note: "risiko hujan/angin ke depan — bobot 35%" },
+        { key: "Kepadatan area", val: rs.density_component || 0, max: 25, icon: "groups", note: "kepadatan & kritikalitas lokasi — bobot 25%" },
+      ]
+    : [];
+  const dominant = EXPL.slice().sort((a, b) => b.val - a.val)[0];
+  const dominantText =
+    dominant && dominant.val > 0
+      ? `Paling dipengaruhi oleh ${dominant.key.toLowerCase()}.`
+      : "Semua faktor rendah — kondisi relatif aman.";
+
   const sumber = [
     { icon: "photo_camera", tone: "text-brand", title: "Scan Visual (RGB)", body: scanBody(rek), roadmap: false, box: "border-outline-variant" },
     { icon: "device_thermostat", tone: "text-risk-kritis", title: "Thermal (titik panas)", body: "Sensor termal IoT — roadmap integrasi.", roadmap: true, box: "border-outline-variant" },
@@ -198,6 +212,37 @@ export default function DetailAset() {
           </div>
         </div>
       </div>
+
+      {/* Penjelasan penyebab skor */}
+      {rs && (
+        <div className="rounded-2xl border border-outline-variant bg-card-surface p-5 shadow-sm">
+          <h2 className="flex items-center gap-2 font-heading text-lg font-bold">
+            <span className="material-symbols-outlined text-brand">help</span> Kenapa skornya {score}%?
+          </h2>
+          <p className="mb-4 mt-1 font-body-md text-[13px] text-on-surface-variant">
+            Skor dihitung dari kombinasi tiga faktor. {dominantText}
+          </p>
+          <div className="space-y-3">
+            {EXPL.map((c) => (
+              <div key={c.key}>
+                <div className="mb-1 flex items-center justify-between font-body-md text-[13px]">
+                  <span className="flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[18px] text-brand">{c.icon}</span>
+                    {c.key}
+                  </span>
+                  <b>
+                    {Math.round(c.val)} <span className="font-normal text-on-surface-variant">/ {c.max}</span>
+                  </b>
+                </div>
+                <div className="h-2 w-full rounded-full bg-surface-container-low">
+                  <div className="h-2 rounded-full bg-brand" style={{ width: `${Math.min(100, (c.val / c.max) * 100)}%` }} />
+                </div>
+                <p className="mt-0.5 font-body-md text-[11px] text-on-surface-variant">{c.note}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Rekomendasi Tindakan (SPK) */}
       <div className="rounded-2xl border border-outline-variant bg-card-surface p-5 shadow-sm">
