@@ -37,6 +37,22 @@ router.get(
   })
 );
 
+// GET /api/assignments/petugas — daftar petugas untuk dropdown penugasan (admin/supervisor).
+// Didefinisikan SEBELUM '/:id' agar tidak tertangkap sebagai id.
+router.get(
+  '/petugas',
+  asyncHandler(async (req, res) => {
+    if (!isSuper(req.user.role)) throw new ApiError(403, 'forbidden', 'Hanya supervisor/admin');
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, full_name, unit')
+      .eq('role', 'petugas')
+      .order('full_name', { ascending: true });
+    if (error) throw new ApiError(500, 'db_error', error.message);
+    res.json({ ok: true, data: data || [] });
+  })
+);
+
 // GET /api/assignments/:id — detail + report penyelesaian.
 router.get(
   '/:id',
