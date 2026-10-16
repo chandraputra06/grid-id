@@ -49,6 +49,10 @@ app.use('/api/maximo', requireAuth, requireRole('admin', 'supervisor'), require(
 // === Peta: laporan ber-koordinat (staf) ===
 app.use('/api/map', requireAuth, requireRole('admin', 'petugas', 'supervisor'), require('./routes/map'));
 
+// === Ekosistem: reward (leaderboard) & mitra ===
+app.use('/api/reward', requireAuth, requireRole('admin', 'petugas', 'supervisor'), require('./routes/reward'));
+app.use('/api/mitra', requireAuth, requireRole('admin', 'petugas', 'supervisor'), require('./routes/mitra'));
+
 // === Hardware / IoT (role hardware) ===
 app.use('/api/devices', requireAuth, requireRole('admin', 'hardware'), require('./routes/devices'));
 
