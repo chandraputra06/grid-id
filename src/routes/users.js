@@ -3,10 +3,24 @@ const asyncHandler = require('../utils/asyncHandler');
 const ApiError = require('../utils/apiError');
 const supabase = require('../config/supabase');
 
-const ROLES = ['admin', 'petugas', 'warga'];
+const ROLES = ['admin', 'petugas', 'warga', 'supervisor', 'hardware'];
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// GET /api/users — daftar user (profil + email). Admin only.
+// Role apa yang boleh DIBERIKAN oleh si aktor.
+// admin: semua. supervisor: hanya petugas.
+function assignableBy(actorRole) {
+  if (actorRole === 'admin') return ROLES;
+  if (actorRole === 'supervisor') return ['petugas'];
+  return [];
+}
+// Supervisor tidak boleh mengutak-atik akun role tinggi.
+function canTouchTarget(actorRole, targetRole) {
+  if (actorRole === 'admin') return true;
+  if (actorRole === 'supervisor') return targetRole === 'petugas' || targetRole === 'warga';
+  return false;
+}
+
+// GET /api/users — daftar user (profil + email). Admin & supervisor.
 router.get(
   '/',
   asyncHandler(async (req, res) => {
@@ -25,7 +39,7 @@ router.get(
   })
 );
 
-// POST /api/users — buat akun (petugas/admin/warga). Admin only.
+// POST /api/users — buat akun. Admin: role apa saja. Supervisor: hanya petugas.
 router.post(
   '/',
   asyncHandler(async (req, res) => {
@@ -33,6 +47,9 @@ router.post(
     if (!email || !password) throw new ApiError(400, 'bad_request', 'Email dan password wajib diisi');
     if (String(password).length < 8) throw new ApiError(400, 'bad_request', 'Password minimal 8 karakter');
     if (!ROLES.includes(role)) throw new ApiError(400, 'bad_request', 'Role tidak valid');
+    if (!assignableBy(req.user.role).includes(role)) {
+      throw new ApiError(403, 'forbidden', `Role '${req.user.role}' tidak boleh membuat akun role '${role}'`);
+    }
 
     const { data, error } = await supabase.auth.admin.createUser({
       email,
@@ -42,7 +59,6 @@ router.post(
     });
     if (error) throw new ApiError(400, 'create_failed', error.message);
 
-    // Trigger sudah membuat profil dengan role dari metadata. Lengkapi phone/unit bila ada.
     if (phone || unit) {
       await supabase.from('profiles').update({ phone, unit }).eq('id', data.user.id);
     }
@@ -51,7 +67,7 @@ router.post(
   })
 );
 
-// PATCH /api/users/:id/role — ubah role user. Admin only.
+// PATCH /api/users/:id/role — ubah role user.
 router.patch(
   '/:id/role',
   asyncHandler(async (req, res) => {
@@ -59,6 +75,16 @@ router.patch(
     if (!UUID_RE.test(id)) throw new ApiError(400, 'bad_request', 'id harus UUID');
     const { role } = req.body || {};
     if (!ROLES.includes(role)) throw new ApiError(400, 'bad_request', 'Role tidak valid');
+    if (!assignableBy(req.user.role).includes(role)) {
+      throw new ApiError(403, 'forbidden', `Role '${req.user.role}' tidak boleh menetapkan role '${role}'`);
+    }
+
+    // Lindungi akun role tinggi dari supervisor.
+    const { data: target } = await supabase.from('profiles').select('role').eq('id', id).maybeSingle();
+    if (!target) throw new ApiError(404, 'not_found', 'User tidak ditemukan');
+    if (!canTouchTarget(req.user.role, target.role)) {
+      throw new ApiError(403, 'forbidden', 'Tidak boleh mengubah akun ini');
+    }
 
     const { data, error } = await supabase
       .from('profiles')

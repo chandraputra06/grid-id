@@ -35,8 +35,8 @@ app.use('/api/detections', requireAuth, requireRole('admin', 'petugas', 'supervi
 // Dataset training: Admin + Hardware (tim alat/ML)
 app.use('/api/dataset', requireAuth, requireRole('admin', 'hardware'), require('./routes/dataset'));
 
-// Admin saja
-app.use('/api/users', requireAuth, requireRole('admin'), require('./routes/users'));
+// Manajemen user: admin (semua role) + supervisor (hanya petugas; dibatasi di dalam route)
+app.use('/api/users', requireAuth, requireRole('admin', 'supervisor'), require('./routes/users'));
 
 // === Route v2 — alur inspeksi, penugasan, verifikasi ===
 app.use('/api/inspections', requireAuth, requireRole('admin', 'petugas', 'supervisor'), require('./routes/inspections'));
