@@ -148,6 +148,8 @@ export function AdminShell({ children }) {
   const navGroups = [...groups];
   if (me?.role === "petugas" || me?.role === "admin") navGroups.push(petugasGroup);
   if (me?.role === "supervisor" || me?.role === "admin") navGroups.push(superGroup);
+  if (me?.role === "supervisor")
+    navGroups.push({ label: "Pengelolaan", items: [{ icon: "manage_accounts", label: "Manajemen Petugas", href: "/dashboard/pengguna" }] });
   if (me?.role === "hardware" || me?.role === "admin") navGroups.push(hardwareGroup);
   if (me?.role === "admin") navGroups.push(adminGroup);
 

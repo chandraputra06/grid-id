@@ -1,21 +1,38 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 
 const ROLE_META = {
   admin: { label: "Admin", cls: "bg-brand/10 text-brand" },
+  supervisor: { label: "Supervisor", cls: "bg-brand/10 text-brand" },
   petugas: { label: "Petugas", cls: "bg-risk-waspada/10 text-risk-waspada" },
+  hardware: { label: "Hardware", cls: "bg-risk-waspada/10 text-risk-waspada" },
   warga: { label: "Warga", cls: "bg-risk-aman/10 text-risk-aman" },
 };
+const ALL_ROLES = ["admin", "supervisor", "petugas", "hardware", "warga"];
 
-const EMPTY = { full_name: "", email: "", password: "", role: "petugas", phone: "", unit: "" };
+// Cermin dari aturan backend (users.js):
+// admin boleh memberikan role apa saja; supervisor hanya 'petugas'.
+function assignableBy(actorRole) {
+  if (actorRole === "admin") return ALL_ROLES;
+  if (actorRole === "supervisor") return ["petugas"];
+  return [];
+}
+// Supervisor tak boleh menyentuh akun role tinggi.
+function canTouch(actorRole, targetRole) {
+  if (actorRole === "admin") return true;
+  if (actorRole === "supervisor") return targetRole === "petugas" || targetRole === "warga";
+  return false;
+}
 
 export default function ManajemenUser() {
+  const [meRole, setMeRole] = useState("admin");
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [listErr, setListErr] = useState("");
 
-  const [form, setForm] = useState(EMPTY);
+  const assignable = useMemo(() => assignableBy(meRole), [meRole]);
+  const [form, setForm] = useState({ full_name: "", email: "", password: "", role: "petugas", phone: "", unit: "" });
   const [busy, setBusy] = useState(false);
   const [formErr, setFormErr] = useState("");
   const [ok, setOk] = useState("");
@@ -24,8 +41,12 @@ export default function ManajemenUser() {
     setLoading(true);
     setListErr("");
     try {
-      const data = await api.get("/api/users");
-      setUsers(data || []);
+      const [u, me] = await Promise.all([api.get("/api/users"), api.get("/api/me").catch(() => null)]);
+      setUsers(u || []);
+      if (me?.role) {
+        setMeRole(me.role);
+        setForm((f) => ({ ...f, role: assignableBy(me.role)[0] || "petugas" }));
+      }
     } catch (e) {
       setListErr(e?.message || "Gagal memuat daftar user.");
     } finally {
@@ -35,6 +56,7 @@ export default function ManajemenUser() {
 
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -63,7 +85,7 @@ export default function ManajemenUser() {
         unit: form.unit || null,
       });
       setOk(`Akun ${form.email} (${form.role}) berhasil dibuat.`);
-      setForm(EMPTY);
+      setForm({ full_name: "", email: "", password: "", role: assignable[0] || "petugas", phone: "", unit: "" });
       load();
     } catch (err) {
       setFormErr(err?.message || "Gagal membuat akun.");
@@ -81,12 +103,16 @@ export default function ManajemenUser() {
     }
   }
 
+  const isAdmin = meRole === "admin";
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-heading text-2xl font-extrabold text-on-surface">Manajemen User</h1>
+        <h1 className="font-heading text-2xl font-extrabold text-on-surface">{isAdmin ? "Manajemen User" : "Manajemen Petugas"}</h1>
         <p className="font-body-md text-body-md text-on-surface-variant">
-          Kelola akun petugas &amp; admin. Warga mendaftar sendiri lewat halaman publik.
+          {isAdmin
+            ? "Kelola semua akun & role. Warga mendaftar sendiri lewat halaman publik."
+            : "Buat & kelola akun petugas di unit Anda."}
         </p>
       </div>
 
@@ -112,9 +138,9 @@ export default function ManajemenUser() {
             </Field>
             <Field label="Role">
               <select value={form.role} onChange={set("role")} className="fld-u">
-                <option value="petugas">Petugas</option>
-                <option value="admin">Admin</option>
-                <option value="warga">Warga</option>
+                {assignable.map((r) => (
+                  <option key={r} value={r}>{ROLE_META[r]?.label || r}</option>
+                ))}
               </select>
             </Field>
             <div className="grid grid-cols-2 gap-3">
@@ -171,6 +197,8 @@ export default function ManajemenUser() {
                 <tbody>
                   {users.map((u) => {
                     const meta = ROLE_META[u.role] || ROLE_META.warga;
+                    const editable = canTouch(meRole, u.role);
+                    const opts = Array.from(new Set([u.role, ...assignable]));
                     return (
                       <tr key={u.id} className="border-b border-outline-variant/60">
                         <td className="py-2.5 pr-3 font-body-md text-[13px] text-on-surface">{u.full_name || "—"}</td>
@@ -179,15 +207,19 @@ export default function ManajemenUser() {
                           <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${meta.cls}`}>{meta.label}</span>
                         </td>
                         <td className="py-2.5">
-                          <select
-                            value={u.role}
-                            onChange={(e) => changeRole(u.id, e.target.value)}
-                            className="rounded-lg border border-outline-variant bg-white px-2 py-1 text-[12px] outline-none focus:border-brand"
-                          >
-                            <option value="petugas">Petugas</option>
-                            <option value="admin">Admin</option>
-                            <option value="warga">Warga</option>
-                          </select>
+                          {editable ? (
+                            <select
+                              value={u.role}
+                              onChange={(e) => changeRole(u.id, e.target.value)}
+                              className="rounded-lg border border-outline-variant bg-white px-2 py-1 text-[12px] outline-none focus:border-brand"
+                            >
+                              {opts.map((r) => (
+                                <option key={r} value={r}>{ROLE_META[r]?.label || r}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <span className="font-body-md text-[12px] text-on-surface-variant">—</span>
+                          )}
                         </td>
                       </tr>
                     );
