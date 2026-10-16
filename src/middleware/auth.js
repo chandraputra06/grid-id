@@ -1,7 +1,7 @@
 const supabase = require("../config/supabase");
 const ApiError = require("../utils/apiError");
 
-// Verifikasi JWT Supabase + muat role dari tabel profiles -> req.user
+// Verifikasi JWT Supabase + muat role & unit dari tabel profiles -> req.user
 async function requireAuth(req, res, next) {
   try {
     const h = req.headers.authorization || "";
@@ -30,7 +30,7 @@ async function requireAuth(req, res, next) {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role, full_name, phone, unit")
+      .select("role, full_name, phone, unit, uid, up3, ulp")
       .eq("id", data.user.id)
       .maybeSingle();
 
@@ -38,6 +38,10 @@ async function requireAuth(req, res, next) {
       id: data.user.id,
       email: data.user.email,
       role: (profile && profile.role) || "warga",
+      // scoping organisasi
+      uid: (profile && profile.uid) || null,
+      up3: (profile && profile.up3) || null,
+      ulp: (profile && profile.ulp) || null,
       profile: profile || null,
     };
     next();

@@ -26,15 +26,23 @@ app.use('/api/reports', requireAuth, require('./routes/reports'));
 app.use('/api/scan', requireAuth, require('./routes/scan'));
 app.use('/api/uploads', requireAuth, require('./routes/uploads'));
 
-// Admin + Petugas saja
-app.use('/api/dashboard', requireAuth, requireRole('admin', 'petugas'), require('./routes/dashboard'));
-app.use('/api/prioritas', requireAuth, requireRole('admin', 'petugas'), require('./routes/prioritas'));
-app.use('/api/rekomendasi', requireAuth, requireRole('admin', 'petugas'), require('./routes/rekomendasi'));
-app.use('/api/detections', requireAuth, requireRole('admin', 'petugas'), require('./routes/detections'));
-app.use('/api/dataset', requireAuth, requireRole('admin', 'petugas'), require('./routes/dataset'));
+// Admin + Petugas + Supervisor
+app.use('/api/dashboard', requireAuth, requireRole('admin', 'petugas', 'supervisor'), require('./routes/dashboard'));
+app.use('/api/prioritas', requireAuth, requireRole('admin', 'petugas', 'supervisor'), require('./routes/prioritas'));
+app.use('/api/rekomendasi', requireAuth, requireRole('admin', 'petugas', 'supervisor'), require('./routes/rekomendasi'));
+app.use('/api/detections', requireAuth, requireRole('admin', 'petugas', 'supervisor'), require('./routes/detections'));
+
+// Dataset training: Admin + Hardware (tim alat/ML)
+app.use('/api/dataset', requireAuth, requireRole('admin', 'hardware'), require('./routes/dataset'));
 
 // Admin saja
 app.use('/api/users', requireAuth, requireRole('admin'), require('./routes/users'));
+
+// === Route v2 (dimount pada Issue 3 setelah file route-nya dibuat) ===
+// app.use('/api/inspections', requireAuth, requireRole('admin','petugas','supervisor'), require('./routes/inspections'));
+// app.use('/api/assignments', requireAuth, requireRole('admin','petugas','supervisor'), require('./routes/assignments'));
+// app.use('/api/devices',     requireAuth, requireRole('admin','hardware'),             require('./routes/devices'));
+// app.use('/api/maximo',      requireAuth, requireRole('admin','supervisor'),           require('./routes/maximo'));
 
 // 404 + error handler (harus paling bawah)
 app.use(notFound);
