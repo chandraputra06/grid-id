@@ -83,7 +83,7 @@ router.post(
       asset_id: b.asset_id || null,
       created_by: req.user.id,
       assigned_to: b.assigned_to,
-      problem_desc: b.problem_desc || null,
+      problem_desc: b.report_id ? `${b.problem_desc || 'Tindak lanjut laporan'}\n#LPR:${b.report_id}` : b.problem_desc || null,
       priority,
       deadline: b.deadline || null,
       status: 'ditugaskan',
