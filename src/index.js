@@ -46,6 +46,9 @@ app.use('/api/review',      requireAuth, requireRole('admin', 'supervisor'),    
 // === Dummy MAXIMO adapter ===
 app.use('/api/maximo', requireAuth, requireRole('admin', 'supervisor'), require('./routes/maximo'));
 
+// === Peta: laporan ber-koordinat (staf) ===
+app.use('/api/map', requireAuth, requireRole('admin', 'petugas', 'supervisor'), require('./routes/map'));
+
 // === Hardware / IoT (role hardware) ===
 app.use('/api/devices', requireAuth, requireRole('admin', 'hardware'), require('./routes/devices'));
 
