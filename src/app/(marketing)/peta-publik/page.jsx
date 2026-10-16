@@ -5,8 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 /*
   Satu file lengkap (tinggal paste ke app/peta-publik/page.jsx)
   Persiapan: npm i leaflet
-  Foto laporan sementara memakai foto dummy dari picsum.photos.
-  Untuk foto asli, tambahkan field  foto: "/laporan/xxx.jpg"  pada data laporan.
+  Data laporan dimuat dari backend (lihat bagian DATA LAPORAN).
 */
 
 /* ============================================================
@@ -68,38 +67,22 @@ const STATUS_ICON = {
 };
 
 /* ============================================================
-   DATA SAMPLE LAPORAN
+   DATA LAPORAN (dinamis dari backend)
+   GET {API}/api/public/laporan?lat=&lng=&radius=25  ->  { ok, data: [...] }
+   Set NEXT_PUBLIC_API_URL di .env.local (default http://localhost:4000)
    ============================================================ */
-const LAPORAN = [
-  // Sanur
-  { id: 1, judul: "Kabel putus menjuntai di Jl. Danau Tamblingan", kategori: "kabel", level: "kritis", lokasi: "Jl. Danau Tamblingan, Sanur", lat: -8.6935, lng: 115.2617, menit: 18, pelapor: "Komang A.", status: "Menunggu verifikasi", deskripsi: "Kabel udara putus dan menjuntai hingga ketinggian sekitar 2 meter di atas jalan. Warga sudah memasang pembatas sementara." },
-  { id: 2, judul: "Dahan pohon menyentuh kabel dekat Pantai Sanur", kategori: "pohon", level: "waspada", lokasi: "Jl. Pantai Sanur", lat: -8.6978, lng: 115.264, menit: 95, pelapor: "Made S.", status: "Ditangani petugas", deskripsi: "Dahan pohon ketapang tumbuh menempel pada jaringan kabel. Berpotensi korslet bila angin kencang." },
-  { id: 3, judul: "Gardu distribusi Sindhu kondisi baik", kategori: "trafo", level: "aman", lokasi: "Jl. Danau Poso, Sindhu", lat: -8.689, lng: 115.264, menit: 300, pelapor: "Ayu P.", status: "Selesai", deskripsi: "Pemeriksaan visual gardu: tidak ada kebocoran, pagar pengaman utuh, area bersih dari vegetasi." },
-  { id: 4, judul: "Genangan air di bawah gardu Semawang", kategori: "banjir", level: "waspada", lokasi: "Banjar Semawang, Sanur", lat: -8.712, lng: 115.26, menit: 140, pelapor: "Wayan R.", status: "Menunggu verifikasi", deskripsi: "Air setinggi mata kaki menggenang di sekitar tiang gardu setelah hujan deras semalam." },
-  { id: 5, judul: "Tiang listrik miring setelah angin kencang", kategori: "tiang", level: "kritis", lokasi: "Jl. Tanjung Sari, Sanur", lat: -8.704, lng: 115.2655, menit: 42, pelapor: "Nyoman T.", status: "Ditangani petugas", deskripsi: "Tiang miring sekitar 30 derajat dan menekan kabel ke arah rumah warga. Mohon segera ditangani." },
-  { id: 16, judul: "Kabel fiber optik menggantung rendah", kategori: "kabel", level: "waspada", lokasi: "Jl. Bypass Ngurah Rai, Sanur", lat: -8.6905, lng: 115.2585, menit: 180, pelapor: "Dika P.", status: "Menunggu verifikasi", deskripsi: "Kabel menggantung sekitar 3 meter dari tanah, dikhawatirkan tersangkut kendaraan tinggi." },
-  { id: 17, judul: "Trafo bersih, pagar pengaman utuh", kategori: "trafo", level: "aman", lokasi: "Jl. Cemara, Sanur", lat: -8.6995, lng: 115.2605, menit: 620, pelapor: "Eka S.", status: "Selesai", deskripsi: "Pengecekan rutin: kondisi trafo normal dan area sekitar bersih." },
-  { id: 18, judul: "Air rob menggenang dekat panel pantai", kategori: "banjir", level: "kritis", lokasi: "Pantai Mertasari, Sanur", lat: -8.7185, lng: 115.2615, menit: 33, pelapor: "Yoga A.", status: "Ditangani petugas", deskripsi: "Air pasang naik hingga mendekati panel listrik pinggir pantai. Perlu penanganan segera." },
-  { id: 19, judul: "Pohon beringin dipangkas rapi", kategori: "pohon", level: "aman", lokasi: "Jl. Danau Buyan, Sanur", lat: -8.6925, lng: 115.2665, menit: 1200, pelapor: "Tari W.", status: "Selesai", deskripsi: "Pemangkasan dahan di dekat kabel sudah selesai dan jarak aman terpenuhi." },
-  { id: 20, judul: "Tiang beton retak di bagian bawah", kategori: "tiang", level: "waspada", lokasi: "Jl. Hang Tuah, Sanur", lat: -8.6845, lng: 115.2625, menit: 410, pelapor: "Bayu K.", status: "Menunggu verifikasi", deskripsi: "Terlihat retakan memanjang di pangkal tiang. Belum miring, tapi perlu dicek petugas." },
-  // Renon & Panjer
-  { id: 6, judul: "Trafo berderit dan terasa panas", kategori: "trafo", level: "waspada", lokasi: "Jl. Raya Puputan, Renon", lat: -8.6717, lng: 115.235, menit: 210, pelapor: "Dewi K.", status: "Menunggu verifikasi", deskripsi: "Terdengar suara berderit dari trafo dan permukaannya terasa hangat saat didekati." },
-  { id: 7, judul: "Pohon sudah dipangkas petugas", kategori: "pohon", level: "aman", lokasi: "Jl. Tantular, Panjer", lat: -8.696, lng: 115.235, menit: 1500, pelapor: "Putu G.", status: "Selesai", deskripsi: "Pemangkasan sudah selesai, jarak aman dengan kabel terpenuhi." },
-  // Sesetan, Pedungan, Sidakarya
-  { id: 8, judul: "Banjir setinggi lutut dekat panel listrik", kategori: "banjir", level: "kritis", lokasi: "Jl. Raya Sesetan", lat: -8.7205, lng: 115.21, menit: 25, pelapor: "Ketut B.", status: "Ditangani petugas", deskripsi: "Air masuk ke area panel listrik pinggir jalan. Warga diminta menjauh dari titik genangan." },
-  { id: 9, judul: "Kabel semrawut menempel atap warung", kategori: "kabel", level: "waspada", lokasi: "Gang Mawar, Sesetan", lat: -8.724, lng: 115.214, menit: 380, pelapor: "Rina M.", status: "Menunggu verifikasi", deskripsi: "Beberapa kabel menempel pada atap seng warung. Risiko sengatan saat hujan." },
-  { id: 10, judul: "Tiang listrik dicek, kondisi tegak", kategori: "tiang", level: "aman", lokasi: "Jl. Pedungan Raya", lat: -8.711, lng: 115.193, menit: 2000, pelapor: "Adi W.", status: "Selesai", deskripsi: "Tiang dalam kondisi tegak dan pondasi kokoh." },
-  { id: 11, judul: "Ranting menjalar ke jaringan kabel", kategori: "pohon", level: "waspada", lokasi: "Jl. Sidakarya", lat: -8.73, lng: 115.226, menit: 500, pelapor: "Sari L.", status: "Menunggu verifikasi", deskripsi: "Ranting pohon mangga mulai menyentuh kabel. Perlu dipangkas sebelum musim hujan." },
-  // Kuta
-  { id: 12, judul: "Trafo mengeluarkan percikan api", kategori: "trafo", level: "kritis", lokasi: "Jl. Legian, Kuta", lat: -8.718, lng: 115.169, menit: 12, pelapor: "John D.", status: "Ditangani petugas", deskripsi: "Percikan api terlihat dari trafo, disertai bau terbakar. Area sudah dikosongkan sementara." },
-  { id: 13, judul: "Genangan sudah surut, panel aman", kategori: "banjir", level: "aman", lokasi: "Jl. Pantai Kuta", lat: -8.724, lng: 115.172, menit: 700, pelapor: "Lia S.", status: "Selesai", deskripsi: "Genangan sudah surut dan panel kering. Tidak ada kerusakan." },
-  // Ubud
-  { id: 14, judul: "Pohon besar condong ke arah kabel", kategori: "pohon", level: "waspada", lokasi: "Jl. Monkey Forest, Ubud", lat: -8.5069, lng: 115.2625, menit: 260, pelapor: "Gede H.", status: "Menunggu verifikasi", deskripsi: "Pohon besar mulai condong ke jaringan kabel setelah tanah di pangkalnya longsor kecil." },
-  { id: 15, judul: "Kabel sudah dirapikan petugas", kategori: "kabel", level: "aman", lokasi: "Jl. Hanoman, Ubud", lat: -8.512, lng: 115.26, menit: 3000, pelapor: "Sinta N.", status: "Selesai", deskripsi: "Kabel yang sebelumnya menjuntai sudah diikat dan dirapikan." },
-];
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").replace(/\/$/, "");
+const FETCH_RADIUS = 25; // ambil radius terbesar sekali, filter 3/5/10/25 km dilakukan di client
 
-/* Foto dummy (anggap hasil scan/foto warga). Jika data punya field `foto`, itu yang dipakai. */
-const fotoUrl = (l, w = 240, h = 240) => l.foto || `https://picsum.photos/seed/grid-laporan-${l.id}/${w}/${h}`;
+async function fetchLaporan(center, signal) {
+  const res = await fetch(`${API_URL}/api/public/laporan?lat=${center.lat}&lng=${center.lng}&radius=${FETCH_RADIUS}`, { signal });
+  const json = await res.json().catch(() => null);
+  if (!res.ok || !json || json.ok === false) throw new Error(json?.error?.message || "Gagal memuat laporan");
+  return Array.isArray(json.data) ? json.data : [];
+}
+
+/* Foto laporan dari backend (field `foto`). Tanpa foto -> placeholder ikon kategori. */
+const fotoUrl = (l) => l.foto || null;
 
 /* ============================================================
    HELPER
@@ -126,8 +109,8 @@ const distKm = (a, b) => {
 };
 
 /* Laporan dalam radius (km), urut: kritis > waspada > aman, lalu terbaru */
-const laporanDekat = (center, radiusKm = 5) =>
-  LAPORAN.map((l) => ({ ...l, jarak: distKm(center, l) }))
+const laporanDekat = (data, center, radiusKm = 5) =>
+  data.map((l) => ({ ...l, jarak: distKm(center, l) }))
     .filter((l) => l.jarak <= radiusKm)
     .sort((a, b) => RANK[a.level] - RANK[b.level] || a.menit - b.menit);
 
@@ -340,7 +323,7 @@ function PetaMap({ center, label, laporan, selectedId, onSelect, radiusKm = 5, p
 function Foto({ l, big = false }) {
   const [err, setErr] = useState(false);
   const m = LEVEL_META[l.level];
-  if (err) {
+  if (err || !l.foto) {
     return (
       <div className="grid h-full w-full place-items-center" style={{ background: m.grad }}>
         <span className="material-symbols-outlined text-[28px]" style={{ color: m.onGrad, fontVariationSettings: "'FILL' 1" }}>{KATEGORI[l.kategori].icon}</span>
@@ -348,7 +331,7 @@ function Foto({ l, big = false }) {
     );
   }
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={fotoUrl(l, big ? 800 : 240, big ? 500 : 240)} alt={l.judul} loading="lazy" onError={() => setErr(true)} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />;
+  return <img src={fotoUrl(l)} alt={l.judul} loading="lazy" onError={() => setErr(true)} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />;
 }
 
 function Badge({ level, className = "" }) {
@@ -373,10 +356,31 @@ export default function PetaPublik() {
   const [selectedId, setSelectedId] = useState(null);
   const [detail, setDetail] = useState(null);
   const [pad, setPad] = useState({ l: 0, b: 0 });
+  const [data, setData] = useState([]);
+  const [loadState, setLoadState] = useState("loading"); // loading | ok | error
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     setWilayah(getWilayah());
   }, []);
+
+  /* Ambil laporan dari backend setiap lokasi berubah (dan refresh tiap 60 dtk) */
+  const wLat = wilayah?.lat;
+  const wLng = wilayah?.lng;
+  useEffect(() => {
+    if (wLat == null || wLng == null) return;
+    const ctrl = new AbortController();
+    let first = true;
+    const load = () =>
+      fetchLaporan({ lat: wLat, lng: wLng }, ctrl.signal)
+        .then((d) => { setData(d); setLoadState("ok"); })
+        .catch((e) => { if (e.name !== "AbortError" && first) setLoadState("error"); })
+        .finally(() => { first = false; });
+    setLoadState("loading");
+    load();
+    const t = setInterval(load, 60000);
+    return () => { ctrl.abort(); clearInterval(t); };
+  }, [wLat, wLng, reloadKey]);
 
   /* Geser fokus peta supaya tidak tertutup overlay */
   useEffect(() => {
@@ -403,7 +407,7 @@ export default function PetaPublik() {
   const place = w.desa || w.kecamatan || w.kabupaten || "Bali";
   const sub = [w.kecamatan, w.kabupaten].filter((x) => x && x !== place).join(", ") || "Bali";
 
-  const semua = useMemo(() => laporanDekat(center, radius), [center, radius]);
+  const semua = useMemo(() => laporanDekat(data, center, radius), [data, center, radius]);
   const counts = useMemo(() => ({
     semua: semua.length,
     kritis: semua.filter((l) => l.level === "kritis").length,
@@ -583,9 +587,11 @@ export default function PetaPublik() {
             {shown.length === 0 && (
               <div className="m-1 rounded-xl border border-dashed border-[#9CCB45] bg-[#F1FAEA] p-5 text-center">
                 <span className="material-symbols-outlined text-[32px] text-[#1F9D55]">task_alt</span>
-                <p className="mt-1 text-[13px] font-bold">Tidak ada laporan {filter === "semua" ? "" : `level ${filter} `}di radius ini</p>
-                <button onClick={() => { setFilter("semua"); setRadius(25); }} className="mt-3 rounded-full px-4 py-1.5 text-xs font-bold text-white transition-all hover:-translate-y-0.5 active:scale-95" style={{ background: GRAD }}>
-                  Perluas ke 25 km
+                <p className="mt-1 text-[13px] font-bold">
+                  {loadState === "loading" ? "Memuat laporan…" : loadState === "error" ? "Gagal memuat laporan dari server" : `Tidak ada laporan ${filter === "semua" ? "" : `level ${filter} `}di radius ini`}
+                </p>
+                <button onClick={() => { if (loadState === "error") return setReloadKey((k) => k + 1); setFilter("semua"); setRadius(25); }} className="mt-3 rounded-full px-4 py-1.5 text-xs font-bold text-white transition-all hover:-translate-y-0.5 active:scale-95" style={{ background: GRAD }}>
+                  {loadState === "error" ? "Coba lagi" : "Perluas ke 25 km"}
                 </button>
               </div>
             )}
