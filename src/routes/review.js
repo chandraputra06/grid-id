@@ -57,7 +57,8 @@ router.post(
         asset_id: rep.asset_id || null,
         created_by: req.user.id,
         assigned_to,
-        problem_desc: problem_desc || rep.description || 'Tindak lanjut laporan terverifikasi',
+        // penanda laporan (#LPR:<id>) dipakai Peta Publik untuk membaca status per laporan, tanpa ubah skema DB
+        problem_desc: `${problem_desc || rep.description || 'Tindak lanjut laporan terverifikasi'}\n#LPR:${rep.id}`,
         priority: [1, 2, 3].includes(pr) ? pr : 2,
         deadline: deadline || null,
         status: 'ditugaskan',
