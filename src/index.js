@@ -43,9 +43,11 @@ app.use('/api/inspections', requireAuth, requireRole('admin', 'petugas', 'superv
 app.use('/api/assignments', requireAuth, requireRole('admin', 'petugas', 'supervisor'), require('./routes/assignments'));
 app.use('/api/review',      requireAuth, requireRole('admin', 'supervisor'),            require('./routes/review'));
 
+// === Dummy MAXIMO adapter ===
+app.use('/api/maximo', requireAuth, requireRole('admin', 'supervisor'), require('./routes/maximo'));
+
 // === Route v2 (menyusul di issue berikutnya) ===
-// app.use('/api/devices', requireAuth, requireRole('admin','hardware'),   require('./routes/devices'));
-// app.use('/api/maximo',  requireAuth, requireRole('admin','supervisor'), require('./routes/maximo'));
+// app.use('/api/devices', requireAuth, requireRole('admin','hardware'), require('./routes/devices'));
 
 // 404 + error handler (harus paling bawah)
 app.use(notFound);
