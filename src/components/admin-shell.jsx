@@ -27,6 +27,11 @@ const groups = [
   },
 ];
 
+// Menu khusus hardware (tim alat)
+const hardwareGroup = {
+  label: "Perangkat",
+  items: [{ icon: "sensors", label: "Perangkat IoT", href: "/dashboard/perangkat" }],
+};
 // Menu khusus petugas (lapangan)
 const petugasGroup = {
   label: "Lapangan",
@@ -143,6 +148,7 @@ export function AdminShell({ children }) {
   const navGroups = [...groups];
   if (me?.role === "petugas" || me?.role === "admin") navGroups.push(petugasGroup);
   if (me?.role === "supervisor" || me?.role === "admin") navGroups.push(superGroup);
+  if (me?.role === "hardware" || me?.role === "admin") navGroups.push(hardwareGroup);
   if (me?.role === "admin") navGroups.push(adminGroup);
 
   return (
