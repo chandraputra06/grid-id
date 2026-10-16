@@ -1,10 +1,10 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { Reveal } from "@/components/motion";
+import { supabase } from "@/lib/supabase";
 
 /* ============ PENGATURAN ============ */
-const USER = { name: "Made Wirawan", short: "Made W.", username: "@made_wirawan" };
-const AVATAR = "/maskot-prediktif.png"; // foto dummy, ganti dengan foto profil asli
+const AVATAR_FALLBACK = "/maskot-prediktif.png"; // dipakai kalau akun belum punya foto profil
 const NEXT_LEVEL_AT = 2000;
 
 const MASCOT_SRC = "/maskot-progresss.png";
@@ -28,12 +28,6 @@ const MISI0 = [
   { id: 1, label: "Laporan 1 Tiang Miring", sub: "Batas: 2 hari lagi", pts: 50, done: false },
   { id: 2, label: "Validasi Cuaca Lokal", sub: "Selesai", pts: 20, done: true },
   { id: 3, label: "Cek Skor Risiko Hari Ini", sub: "Batas: hari ini", pts: 10, done: false },
-];
-
-const BOARD = [
-  { rank: 1, name: "Budi S.", pts: 2450 },
-  { rank: 2, name: "Siti A.", pts: 2100 },
-  { rank: 5, name: USER.short, me: true },
 ];
 
 const REWARDS = {
@@ -64,6 +58,22 @@ const PANTUN = [
 
 const fmt = (n) => Math.round(n).toLocaleString("id-ID");
 const rnd = () => Math.random().toString(36).slice(2, 6).toUpperCase();
+
+// "medali1.png" -> "Medali 1"
+const medalName = (m) => m.file.replace(/\.[^.]+$/, "").replace(/^medali(\d+)/i, "Medali $1");
+
+// Bentuk data user dari akun Supabase yang sedang login
+function buildUser(u) {
+  const prefix = u?.email?.split("@")[0] || "";
+  const name = (u?.user_metadata?.full_name || u?.user_metadata?.name || prefix || "Penjaga Grid").trim();
+  const p = name.split(/\s+/);
+  return {
+    name,
+    short: p.length > 1 ? `${p[0]} ${p[1][0]}.` : p[0],
+    username: prefix ? `@${prefix.toLowerCase()}` : "",
+    avatar: u?.user_metadata?.avatar_url || AVATAR_FALLBACK,
+  };
+}
 
 /* ============ HOOK: angka beranimasi ============ */
 function useAnimatedNumber(target, { from, duration = 900 } = {}) {
@@ -159,7 +169,7 @@ function Medal({ m, size = 76, delay = 0 }) {
       >
         {MEDAL_IMAGES ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={`/${m.file}`} alt={m.file} className="h-full w-full object-cover" />
+          <img src={`/${m.file}`} alt={medalName(m)} className="h-full w-full object-cover" />
         ) : (
           <span className="material-symbols-outlined text-white drop-shadow-[0_2px_3px_rgba(0,0,0,.35)]" style={{ fontSize: size * 0.42, fontVariationSettings: "'FILL' 1" }}>{m.icon}</span>
         )}
@@ -263,7 +273,7 @@ function Chart({ points }) {
 /* ============ MODAL MEDALI ============ */
 function MedalModal({ m, onClose }) {
   return (
-    <Modal onClose={onClose} label={`Detail ${m.file}`}>
+    <Modal onClose={onClose} label={`Detail ${medalName(m)}`}>
       <div
         className="relative w-full max-w-sm overflow-hidden rounded-3xl p-8 text-center text-white"
         style={{ background: "linear-gradient(160deg,#0A2259,#1D4ED8)", animation: "msPopIn .55s cubic-bezier(.3,1.4,.5,1) both", boxShadow: `0 0 60px ${m.c[1]}88` }}
@@ -275,7 +285,7 @@ function MedalModal({ m, onClose }) {
           </div>
           <Burst n={12} colors={[m.c[0], "#FDE047", "#fff"]} />
         </div>
-        <h3 className="relative mt-6 font-headline-sm text-headline-sm">{m.file}</h3>
+        <h3 className="relative mt-6 font-headline-sm text-headline-sm">{medalName(m)}</h3>
         <p className="relative mt-1 text-sm text-white/80">Lencana dari misimu. Deskripsi medali akan tampil di sini.</p>
         <button onClick={onClose} autoFocus className="relative mt-6 rounded-full bg-white px-6 py-2.5 font-label-bold text-label-bold text-[#1D4ED8] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_24px_rgba(253,224,71,.9)] active:scale-95">
           Tutup
@@ -422,6 +432,22 @@ const IDLE_BG = "linear-gradient(135deg,#1D4ED8,#3B82F6)";
 const DONE_BG = "linear-gradient(120deg,#38BDF8 0%,#3B82F6 40%,#FACC15 100%)";
 
 export default function Misi() {
+  // Data user dari akun yang sedang login (berlaku untuk semua role)
+  const [USER, setUser] = useState(() => buildUser(null));
+  useEffect(() => {
+    let off = false;
+    supabase.auth.getUser().then(({ data }) => {
+      if (!off) setUser(buildUser(data?.user));
+    });
+    return () => { off = true; };
+  }, []);
+
+  const BOARD = [
+    { rank: 1, name: "Budi S.", pts: 2450 },
+    { rank: 2, name: "Siti A.", pts: 2100 },
+    { rank: 5, name: USER.short, me: true },
+  ];
+
   const [points, setPoints] = useState(1240);
   const [misi, setMisi] = useState(MISI0);
   const [pop, setPop] = useState(null);
@@ -431,6 +457,8 @@ export default function Misi() {
   const [glowBtn, setGlowBtn] = useState(null);
   const [pi, setPi] = useState(0);
   const [avatarOk, setAvatarOk] = useState(true);
+
+  useEffect(() => { setAvatarOk(true); }, [USER.avatar]);
 
   const shown = useAnimatedNumber(points, { from: 0, duration: 1400 });
   const pct = Math.max(0, Math.min(100, (shown / NEXT_LEVEL_AT) * 100));
@@ -534,7 +562,7 @@ export default function Misi() {
             <div className="rounded-full p-0.75 shadow-[0_0_24px_rgba(250,204,21,.55)]" style={{ background: "linear-gradient(135deg,#FDE047,#F97316)" }}>
               {avatarOk ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={AVATAR} alt={`Foto profil ${USER.name}`} onError={() => setAvatarOk(false)} className="h-20 w-20 rounded-full bg-white object-cover sm:h-24 sm:w-24" />
+                <img src={USER.avatar} alt={`Foto profil ${USER.name}`} onError={() => setAvatarOk(false)} className="h-20 w-20 rounded-full bg-white object-cover sm:h-24 sm:w-24" />
               ) : (
                 <div className="grid h-20 w-20 place-items-center rounded-full bg-[#1D4ED8] text-3xl font-black sm:h-24 sm:w-24">{USER.name[0]}</div>
               )}
@@ -545,7 +573,7 @@ export default function Misi() {
                 <h2 className="font-headline-md text-headline-md leading-tight">{USER.name}</h2>
                 <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-[11px] font-bold">Level 4 · Penjaga Grid</span>
               </div>
-              <p className="text-sm text-white/75">{USER.username}</p>
+              {USER.username && <p className="text-sm text-white/75">{USER.username}</p>}
 
               <div className="mt-3 flex items-center justify-between text-sm font-bold">
                 <span className="flex items-center gap-1">
@@ -595,7 +623,7 @@ export default function Misi() {
                       <span className={`rounded-full transition-transform duration-300 group-hover:-translate-y-1 group-hover:scale-110 group-active:scale-95 ${glowId === m.file ? "msGlowMedal" : ""}`}>
                         <Medal m={m} size={84} delay={(i % 3) * 0.5} />
                       </span>
-                      <span className="text-xs font-semibold text-on-surface-variant">{m.file}</span>
+                      <span className="text-xs font-semibold text-on-surface-variant">{medalName(m)}</span>
                     </button>
                   ))}
                 </div>
@@ -619,13 +647,13 @@ export default function Misi() {
                     </span>
                   </div>
                 </div>
-                
+
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={MASCOT_LEADERBOARD}
                   alt="Maskot leaderboard"
                   className="msFloat h-24 w-24 shrink-0 object-contain drop-shadow-[0_8px_10px_rgba(0,0,0,.3)]"
                 />
-
               </div>
               <ul className="mt-3 space-y-1.5">
                 {BOARD.map((b) => (
