@@ -27,7 +27,12 @@ const groups = [
   },
 ];
 
-// Menu khusus admin — digabung saat role diketahui
+// Menu khusus supervisor/admin
+const superGroup = {
+  label: "Supervisi",
+  items: [{ icon: "fact_check", label: "Verifikasi", href: "/dashboard/verifikasi" }],
+};
+// Menu khusus admin
 const adminGroup = {
   label: "Administrasi",
   items: [{ icon: "manage_accounts", label: "Manajemen User", href: "/dashboard/pengguna" }],
@@ -130,7 +135,9 @@ export function AdminShell({ children }) {
     }
   }
 
-  const navGroups = me?.role === "admin" ? [...groups, adminGroup] : groups;
+  const navGroups = [...groups];
+  if (me?.role === "supervisor" || me?.role === "admin") navGroups.push(superGroup);
+  if (me?.role === "admin") navGroups.push(adminGroup);
 
   return (
     <div className="flex min-h-screen bg-surface-container-low">
