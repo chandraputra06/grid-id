@@ -3,6 +3,8 @@ import { useEffect, useRef } from "react";
 import "leaflet/dist/leaflet.css";
 
 const WARNA = { kritis: "#E5484D", waspada: "#F4B740", aman: "#21A366" };
+const STATUS_WARNA = { baru: "#2743D9", diproses: "#F4B740", terverifikasi: "#21A366", ditolak: "#9AA4B2" };
+const STATUS_LABEL = { baru: "Baru", diproses: "Diproses", terverifikasi: "Terverifikasi", ditolak: "Ditolak" };
 
 // Fallback koordinat contoh — dipakai hanya jika item tidak membawa lat/lng.
 const KOORD = {
@@ -17,12 +19,22 @@ function posOf(z) {
   return KOORD[z.id] || null;
 }
 
-export function PetaMap({ zona = [] }) {
+function fmt(iso) {
+  if (!iso) return "";
+  try {
+    return new Date(iso).toLocaleString("id-ID", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+  } catch {
+    return "";
+  }
+}
+
+// zona   = aset (lingkaran penuh, warna per level)
+// laporan = laporan warga/petugas (pin garis putus, warna per status)
+export function PetaMap({ zona = [], laporan = [] }) {
   const ref = useRef(null);
   const mapRef = useRef(null);
   const layerRef = useRef(null);
 
-  // buat peta sekali
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -38,32 +50,30 @@ export function PetaMap({ zona = [] }) {
     })();
     return () => {
       cancelled = true;
-      if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; }
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
     };
   }, []);
 
-  // gambar ulang marker setiap kali `zona` (hasil filter / data API) berubah
   useEffect(() => {
     (async () => {
       const L = (await import("leaflet")).default;
       const layer = layerRef.current;
       const map = mapRef.current;
       if (!layer || !map) return;
-      layer.clearLayers(); // hapus marker lama → tidak numpuk
+      layer.clearLayers();
 
       const pts = [];
+
+      // Aset
       zona.forEach((z) => {
         const pos = posOf(z);
         if (!pos) return;
         pts.push(pos);
         const warna = WARNA[z.level] || "#5B6B82";
-        L.circleMarker(pos, {
-          radius: 10,
-          color: warna,
-          fillColor: warna,
-          fillOpacity: 0.85,
-          weight: 2,
-        })
+        L.circleMarker(pos, { radius: 10, color: warna, fillColor: warna, fillOpacity: 0.85, weight: 2 })
           .addTo(layer)
           .bindPopup(
             `<b style="font-family:Montserrat,sans-serif">${z.nama || ""}</b><br/>
@@ -72,15 +82,39 @@ export function PetaMap({ zona = [] }) {
           );
       });
 
+      // Laporan (pin garis putus, warna per status)
+      laporan.forEach((r) => {
+        if (r.lat == null || r.lng == null) return;
+        const pos = [Number(r.lat), Number(r.lng)];
+        pts.push(pos);
+        const warna = STATUS_WARNA[r.status] || "#2743D9";
+        const thumb = r.photo_url
+          ? `<img src="${r.photo_url}" style="margin-top:4px;width:160px;height:90px;object-fit:cover;border-radius:6px"/>`
+          : "";
+        L.circleMarker(pos, {
+          radius: 8,
+          color: warna,
+          fillColor: "#ffffff",
+          fillOpacity: 0.95,
+          weight: 3,
+          dashArray: "3 3",
+        })
+          .addTo(layer)
+          .bindPopup(
+            `<b style="font-family:Montserrat,sans-serif">Laporan · ${STATUS_LABEL[r.status] || r.status || ""}</b><br/>
+             <span style="font-size:12px;color:#5B6B82">${fmt(r.created_at)}${r.source ? " · " + r.source : ""}</span><br/>
+             <span style="font-size:12px">${r.description || "Tanpa deskripsi"}</span>${thumb}`
+          );
+      });
+
       if (pts.length === 1) {
         map.setView(pts[0], 13);
       } else if (pts.length > 1) {
         map.fitBounds(L.latLngBounds(pts), { padding: [30, 30], maxZoom: 13 });
       }
-      // kontainer kadang belum punya ukuran saat init → recalculate agar peta tidak abu-abu
       setTimeout(() => map.invalidateSize(), 0);
     })();
-  }, [zona]);
+  }, [zona, laporan]);
 
   return <div ref={ref} className="h-full w-full" />;
 }

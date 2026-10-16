@@ -20,6 +20,7 @@ function riskFromFactors(f) {
 export default function AdminBeranda() {
   const [data, setData] = useState(null);
   const [points, setPoints] = useState([]);
+  const [reportsGeo, setReportsGeo] = useState([]);
   const [weather, setWeather] = useState(null); // null = memuat
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
@@ -100,6 +101,23 @@ export default function AdminBeranda() {
       .catch(() => {
         setWeather([]);
       });
+
+    // Laporan ber-koordinat untuk overlay peta (opsional)
+    api
+      .get("/api/map/reports")
+      .then((g) => {
+        const feats = g?.features || [];
+        setReportsGeo(
+          feats
+            .map((f) => {
+              const p = f.properties || {};
+              const [lng, lat] = f.geometry?.coordinates || [];
+              return { id: p.id, status: p.status, source: p.source, description: p.description, photo_url: p.photo_url, created_at: p.created_at, lat, lng };
+            })
+            .filter((r) => r.lat != null && r.lng != null)
+        );
+      })
+      .catch(() => {});
   }
 
   useEffect(() => {
@@ -170,8 +188,8 @@ export default function AdminBeranda() {
             <span>Aman: <b className="text-risk-aman">{lv.aman}</b></span>
           </div>
           <div className="mt-3 h-60 overflow-hidden rounded-xl">
-            {points.length > 0 ? (
-              <PetaMap zona={points} />
+            {points.length > 0 || reportsGeo.length > 0 ? (
+              <PetaMap zona={points} laporan={reportsGeo} />
             ) : (
               <div className="grid h-full place-items-center bg-gradient-to-br from-surface-container-low to-surface-container text-on-surface-variant">
                 <div className="text-center">

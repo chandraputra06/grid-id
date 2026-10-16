@@ -27,6 +27,15 @@ const QUOTES = [
 ];
 const DEFECT = { isolator_pecah: "Isolator pecah", korosi: "Korosi", kabel_bermasalah: "Kabel bermasalah", komponen_hilang: "Komponen hilang" };
 
+// Saran mandiri untuk pelapor, per jenis kerusakan.
+const ADVICE = {
+  isolator_pecah: "Jauhi tiang dan jangan berteduh di bawahnya, terutama saat hujan — isolator rusak bisa memicu kebocoran arus.",
+  korosi: "Jangan menyentuh bagian yang berkarat. Jauhkan anak-anak dari tiang, dan hindari memasang apa pun di tiang tersebut.",
+  kabel_bermasalah: "Jaga jarak minimal 5 meter dari kabel yang kendur atau menjuntai. Jangan menyentuhnya. Jika kabel menyentuh tanah/pohon, segera hubungi PLN 123.",
+  komponen_hilang: "Jauhi area — komponen yang hilang bisa membuat bagian bertegangan terbuka. Jangan memanjat atau mengganggu tiang.",
+};
+const GENERAL_ADVICE = "Saat hujan atau banjir, jauhi tiang dan kabel listrik. Jika melihat percikan, asap, bau gosong, atau kabel putus, segera hubungi PLN 123.";
+
 export default function Lapor() {
   const router = useRouter();
   const videoRef = useRef(null);
@@ -263,6 +272,8 @@ export default function Lapor() {
   }, [showLoader, showCamera]);
 
   const dets = sent?.scan?.detections || [];
+  const adviceList = [...new Set(dets.map((d) => d.defect))].map((d) => ADVICE[d]).filter(Boolean);
+  adviceList.push(GENERAL_ADVICE);
 
   return (
     <div className="relative isolate min-h-screen bg-[url('/bg-scan.png')] bg-cover bg-center bg-no-repeat">
@@ -407,6 +418,21 @@ export default function Lapor() {
                     )
                   ) : null}
                 </div>
+                {/* Saran mandiri untuk pelapor */}
+                <div className="rounded-xl border border-[#FBBF24] bg-[#FEF9C3] p-4 text-left">
+                  <p className="flex items-center gap-2 font-label-bold text-label-bold text-[#92400E]">
+                    <FontAwesomeIcon icon={faExclamationTriangle} className="h-4 w-4" /> Yang bisa kamu lakukan
+                  </p>
+                  <ul className="mt-2 space-y-1.5 font-body-md text-[13px] text-on-surface-variant">
+                    {adviceList.map((a, i) => (
+                      <li key={i} className="flex gap-2">
+                        <span className="mt-0.5 text-[#92400E]">•</span>
+                        <span>{a}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
                 <button type="button" onClick={resetScan} className="flex w-full items-center justify-center gap-2 rounded-full bg-linear-to-r from-[#38BDF8] to-[#0020a1] py-3.5 font-label-bold text-label-bold text-white shadow-md transition hover:-translate-y-1">
                   <FontAwesomeIcon icon={faCamera} className="h-4 w-4" /> Lapor Lagi
                 </button>
