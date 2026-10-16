@@ -11,10 +11,9 @@ const ALLOWED_EXT = ['jpg', 'jpeg', 'png', 'webp'];
 router.get(
   '/',
   asyncHandler(async (req, res) => {
-    // Ambil profil lengkap (termasuk avatar_url) langsung dari DB.
     const { data: profile } = await supabase
       .from('profiles')
-      .select('full_name, role, phone, unit, avatar_url')
+      .select('full_name, role, phone, unit, avatar_url, uid, up3, ulp')
       .eq('id', req.user.id)
       .maybeSingle();
 
@@ -29,13 +28,16 @@ router.get(
         phone: p.phone ?? null,
         unit: p.unit ?? null,
         avatar_url: p.avatar_url ?? null,
+        uid: p.uid ?? null,
+        up3: p.up3 ?? null,
+        ulp: p.ulp ?? null,
       },
     });
   })
 );
 
 // PATCH /api/me — update profil sendiri (full_name, phone, unit, avatar_url).
-// Role & email TIDAK bisa diubah di sini (keamanan).
+// Role, unit organisasi (uid/up3/ulp) & email TIDAK bisa diubah di sini (keamanan).
 router.patch(
   '/',
   asyncHandler(async (req, res) => {
@@ -51,7 +53,7 @@ router.patch(
       .from('profiles')
       .update(patch)
       .eq('id', req.user.id)
-      .select('role, full_name, phone, unit, avatar_url')
+      .select('role, full_name, phone, unit, avatar_url, uid, up3, ulp')
       .single();
     if (error) throw new ApiError(500, 'db_error', error.message);
 
@@ -60,7 +62,6 @@ router.patch(
 );
 
 // POST /api/me/avatar-url — signed upload URL untuk foto profil.
-// Alur frontend: (1) minta URL -> (2) uploadToSignedUrl(path, token, file) -> (3) PATCH /api/me { avatar_url: public_url }.
 router.post(
   '/avatar-url',
   asyncHandler(async (req, res) => {
