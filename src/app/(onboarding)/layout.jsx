@@ -1,11 +1,5 @@
-import { AuthGuard } from "@/components/auth-guard";
-import { AdminShell } from "@/components/admin-shell";
-import { STAFF_ROLES } from "@/lib/roles";
-
-export default function DashboardLayout({ children }) {
-  return (
-    <AuthGuard allow={STAFF_ROLES}>
-      <AdminShell>{children}</AdminShell>
-    </AuthGuard>
-  );
+// Layout grup onboarding (masuk, lokasi, wilayah, selesai).
+// TIDAK memakai AuthGuard — halaman ini publik (termasuk /masuk).
+export default function OnboardingLayout({ children }) {
+  return <>{children}</>;
 }
