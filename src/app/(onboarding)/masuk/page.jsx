@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { api } from "@/lib/api";
+import { roleHome } from "@/lib/roles";
 
 /* Taruh di folder /public:
    login-img.png (maskot panel Masuk), maskot-daftar.png (maskot panel Daftar),
@@ -179,8 +180,7 @@ export default function Masuk() {
       } catch {
         // abaikan; default warga
       }
-      if (role === "admin" || role === "petugas") go("/dashboard", "Menyiapkan dashboard…");
-      else go("/lapor", "Menyiapkan laporanmu…");
+      go(roleHome(role), role === "warga" ? "Menyiapkan laporanmu…" : "Menyiapkan dashboard…");
     } catch (e) {
       setBusy(false);
       setErr(e?.message || "Gagal masuk. Periksa email/kata sandi.");
