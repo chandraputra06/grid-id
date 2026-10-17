@@ -19,8 +19,14 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openapi, { customSiteTitle
 app.use('/api/health', require('./routes/health'));
 app.use('/api/cuaca', require('./routes/cuaca'));
 
+// Jangan cache respon yang menentukan identitas/role — cegah 304 role basi.
+function noStore(req, res, next) {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+  next();
+}
+
 // Perlu login (semua role)
-app.use('/api/me', requireAuth, require('./routes/me'));
+app.use('/api/me', requireAuth, noStore, require('./routes/me'));
 app.use('/api/assets', requireAuth, require('./routes/assets'));
 app.use('/api/reports', requireAuth, require('./routes/reports'));
 app.use('/api/scan', requireAuth, require('./routes/scan'));
