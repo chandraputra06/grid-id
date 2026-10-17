@@ -45,7 +45,7 @@ export default function Tentang() {
       <HeroIn>
         <h1 className="font-heading text-3xl font-extrabold leading-[1.1] tracking-tight text-white drop-shadow-[0_4px_12px_#00000059] sm:text-4xl md:text-5xl lg:text-[3.5rem]">
           <span className="block whitespace-nowrap">Mengubah Data</span>
-          <span className="block whitespace-nowrap bg-lineaar-to-r from-[#FFB800] via-[#FFD34D] to-[#FFE9A8] bg-clip-text text-transparent drop-shadow-[0_0_14px_#FFC828BF]">
+          <span className="block whitespace-nowrap bg-linear-to-r from-[#FFB800] via-[#FFD34D] to-[#FFE9A8] bg-clip-text text-transparent drop-shadow-[0_0_14px_#FFC828BF]">
             Menjadi Keandalan
           </span>
         </h1>
