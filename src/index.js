@@ -43,13 +43,14 @@ app.use('/api/inspections', requireAuth, requireRole('admin', 'petugas', 'superv
 app.use('/api/assignments', requireAuth, requireRole('admin', 'petugas', 'supervisor'), require('./routes/assignments'));
 app.use('/api/review',      requireAuth, requireRole('admin', 'supervisor'),            require('./routes/review'));
 
+// Dossier analisis AI (data pendukung verifikasi supervisor)
+app.use('/api/analysis',    requireAuth, requireRole('admin', 'supervisor'),            require('./routes/analysis'));
+
 // === Dummy MAXIMO adapter ===
 app.use('/api/maximo', requireAuth, requireRole('admin', 'supervisor'), require('./routes/maximo'));
 
 // === Peta: laporan ber-koordinat (staf) ===
 app.use('/api/map', requireAuth, requireRole('admin', 'petugas', 'supervisor'), require('./routes/map'));
-
-app.use('/api/public/laporan', require('./routes/publicLaporan'));
 
 // === Ekosistem: reward (leaderboard) & mitra ===
 app.use('/api/reward', requireAuth, requireRole('admin', 'petugas', 'supervisor'), require('./routes/reward'));
