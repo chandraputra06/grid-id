@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { api } from "@/lib/api";
+import { isStaff } from "@/lib/roles";
 
 const links = [
   { href: "/", label: "Beranda" },
@@ -93,11 +94,12 @@ function MenuLink({ href, icon, label, onClick }) {
 }
 
 /* Sudah login: chip user + logout ikon.
-   Admin/Petugas → chip jadi dropdown (Dashboard / Profil). Warga → chip langsung ke profil. */
+   Semua staf (admin/supervisor/petugas/hardware) → chip jadi dropdown (Dashboard / Profil).
+   Warga → chip langsung ke profil. */
 function UserPill({ me, onLogout, busy, full = false }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
-  const canDashboard = me?.role === "admin" || me?.role === "petugas";
+  const canDashboard = isStaff(me?.role);
 
   useEffect(() => {
     function onDoc(e) {

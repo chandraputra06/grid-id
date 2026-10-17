@@ -1,12 +1,16 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { supabase } from "@/lib/supabase";
+import { isStaff, roleHome } from "@/lib/roles";
 
 const ROLE_META = {
   admin: { label: "Admin", cls: "bg-brand/10 text-brand" },
+  supervisor: { label: "Supervisor", cls: "bg-brand/10 text-brand" },
   petugas: { label: "Petugas", cls: "bg-risk-waspada/10 text-risk-waspada" },
+  hardware: { label: "Hardware", cls: "bg-risk-waspada/10 text-risk-waspada" },
   warga: { label: "Warga", cls: "bg-risk-aman/10 text-risk-aman" },
 };
 
@@ -66,6 +70,7 @@ export default function Profil() {
   }, [router]);
 
   const meta = me ? ROLE_META[me.role] || ROLE_META.warga : null;
+  const staff = isStaff(me?.role);
 
   async function logout() {
     if (out) return;
@@ -159,22 +164,33 @@ export default function Profil() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <button
-        onClick={() => router.back()}
-        className="flex items-center gap-1.5 font-label-bold text-label-bold text-brand transition hover:gap-2.5"
-      >
-        <span className="material-symbols-outlined text-[20px]">arrow_back</span> Kembali
-      </button>
+    <div className="mx-auto max-w-2xl space-y-6 px-gutter py-6">
+      {/* Header aksi — mobile-first: Kembali kiri, Dashboard kanan (staf) */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-1.5 font-label-bold text-label-bold text-brand transition hover:gap-2.5"
+        >
+          <span className="material-symbols-outlined text-[20px]">arrow_back</span> Kembali
+        </button>
+        {staff && (
+          <Link
+            href={roleHome(me.role)}
+            className="flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 font-label-bold text-label-bold text-white shadow-sm transition hover:brightness-110 active:scale-95"
+          >
+            <span className="material-symbols-outlined text-[18px]">dashboard</span> Dashboard
+          </Link>
+        )}
+      </div>
 
       <div>
         <h1 className="font-heading text-2xl font-extrabold text-on-surface">Profil Saya</h1>
         <p className="font-body-md text-body-md text-on-surface-variant">Kelola informasi akun, foto, dan password.</p>
       </div>
 
-      {/* Kartu identitas + foto */}
-      <div className="rounded-2xl border border-outline-variant bg-card-surface p-6 shadow-sm">
-        <div className="flex items-center gap-5">
+      {/* Kartu identitas + foto — stack di mobile, sejajar di sm+ */}
+      <div className="rounded-2xl border border-outline-variant bg-card-surface p-5 shadow-sm sm:p-6">
+        <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-center sm:gap-5 sm:text-left">
           <div className="relative shrink-0">
             {me.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -206,7 +222,7 @@ export default function Profil() {
       </div>
 
       {/* Edit profil */}
-      <div className="rounded-2xl border border-outline-variant bg-card-surface p-6 shadow-sm">
+      <div className="rounded-2xl border border-outline-variant bg-card-surface p-5 shadow-sm sm:p-6">
         <h2 className="flex items-center gap-2 font-heading text-lg font-bold text-on-surface">
           <span className="material-symbols-outlined text-brand">badge</span> Informasi Akun
         </h2>
@@ -229,7 +245,7 @@ export default function Profil() {
           <Msg value={profileMsg} />
 
           <button type="submit" disabled={savingProfile}
-            className="flex items-center justify-center gap-2 rounded-full bg-brand px-6 py-2.5 font-label-bold text-label-bold text-white transition hover:brightness-110 active:scale-95 disabled:opacity-60">
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-brand px-6 py-2.5 font-label-bold text-label-bold text-white transition hover:brightness-110 active:scale-95 disabled:opacity-60 sm:w-auto">
             <span className="material-symbols-outlined text-[18px]">{savingProfile ? "hourglass_top" : "save"}</span>
             {savingProfile ? "Menyimpan…" : "Simpan Perubahan"}
           </button>
@@ -237,7 +253,7 @@ export default function Profil() {
       </div>
 
       {/* Ubah password */}
-      <div className="rounded-2xl border border-outline-variant bg-card-surface p-6 shadow-sm">
+      <div className="rounded-2xl border border-outline-variant bg-card-surface p-5 shadow-sm sm:p-6">
         <h2 className="flex items-center gap-2 font-heading text-lg font-bold text-on-surface">
           <span className="material-symbols-outlined text-brand">lock</span> Ubah Password
         </h2>
@@ -252,7 +268,7 @@ export default function Profil() {
           <Msg value={pwMsg} />
 
           <button type="submit" disabled={savingPw}
-            className="flex items-center justify-center gap-2 rounded-full bg-brand px-6 py-2.5 font-label-bold text-label-bold text-white transition hover:brightness-110 active:scale-95 disabled:opacity-60">
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-brand px-6 py-2.5 font-label-bold text-label-bold text-white transition hover:brightness-110 active:scale-95 disabled:opacity-60 sm:w-auto">
             <span className="material-symbols-outlined text-[18px]">{savingPw ? "hourglass_top" : "key"}</span>
             {savingPw ? "Menyimpan…" : "Ubah Password"}
           </button>
