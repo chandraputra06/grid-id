@@ -127,11 +127,12 @@ export default function PrioritasAset() {
               ) : (
                 list.map((item, i) => {
                   const a = item.asset || {};
+                  const assetId = item.asset_id || a.id || "";
                   const lv = LVL[item.level] || LVL.aman;
                   const grade = item.maximo ? GRADE[item.maximo.condition_grade] : null;
                   const rank = i + 1;
                   return (
-                    <tr key={item.asset_id || a.id || i} className={`border-b border-outline-variant/60 hover:bg-surface-container-low ${rank === 1 ? "bg-brand/5" : ""}`}>
+                    <tr key={assetId || i} className={`border-b border-outline-variant/60 hover:bg-surface-container-low ${rank === 1 ? "bg-brand/5" : ""}`}>
                       <td className="p-4">
                         <span className={`grid h-7 w-7 place-items-center rounded-full font-heading font-bold ${lv.tone}`}>{rank}</span>
                       </td>
@@ -161,7 +162,11 @@ export default function PrioritasAset() {
                         ))}
                       </td>
                       <td className="p-4">
-                        <a href={`/dashboard/gardu?id=${a.id || ""}`} className="font-heading text-sm font-bold text-brand hover:underline">Detail →</a>
+                        {assetId ? (
+                          <a href={`/dashboard/gardu?id=${encodeURIComponent(assetId)}`} className="font-heading text-sm font-bold text-brand hover:underline">Detail →</a>
+                        ) : (
+                          <span className="font-body-md text-[12px] text-on-surface-variant">—</span>
+                        )}
                       </td>
                     </tr>
                   );
