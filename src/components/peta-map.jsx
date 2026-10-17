@@ -1,6 +1,17 @@
 "use client";
 import { useEffect, useRef } from "react";
-import "leaflet/dist/leaflet.css";
+
+// CSS Leaflet dimuat via <link> saat runtime (bukan diimpor lewat build),
+// supaya Turbopack/PostCSS tidak memproses leaflet.css — penyebab crash build.
+function ensureLeafletCss() {
+  if (typeof document === "undefined") return;
+  if (document.getElementById("leaflet-css")) return;
+  const link = document.createElement("link");
+  link.id = "leaflet-css";
+  link.rel = "stylesheet";
+  link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+  document.head.appendChild(link);
+}
 
 const WARNA = { kritis: "#E5484D", waspada: "#F4B740", aman: "#21A366" };
 const STATUS_WARNA = { baru: "#2743D9", diproses: "#F4B740", terverifikasi: "#21A366", ditolak: "#9AA4B2" };
@@ -37,6 +48,7 @@ export function PetaMap({ zona = [], laporan = [] }) {
 
   useEffect(() => {
     let cancelled = false;
+    ensureLeafletCss();
     (async () => {
       const L = (await import("leaflet")).default;
       if (cancelled || !ref.current || mapRef.current) return;
