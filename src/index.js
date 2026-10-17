@@ -18,6 +18,7 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openapi, { customSiteTitle
 // Publik (tanpa login)
 app.use('/api/health', require('./routes/health'));
 app.use('/api/cuaca', require('./routes/cuaca'));
+app.use('/api/public/laporan', require('./routes/publicLaporan'));
 
 // Jangan cache respon yang menentukan identitas/role — cegah 304 role basi.
 function noStore(req, res, next) {
