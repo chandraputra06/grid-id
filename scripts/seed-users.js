@@ -4,11 +4,11 @@ require('dotenv').config();
 const supabase = require('../src/config/supabase');
 
 const USERS = [
-  { email: 'admin@grid.id',      password: 'Password', full_name: 'Admin GRID',        role: 'admin' },
-  { email: 'supervisor@grid.id', password: 'Password', full_name: 'Supervisor UID Bali', role: 'supervisor' },
-  { email: 'petugas@grid.id',    password: 'Password', full_name: 'Petugas Lapangan',   role: 'petugas' },
-  { email: 'hardware@grid.id',   password: 'Password', full_name: 'Tim Hardware',       role: 'hardware' },
-  { email: 'warga@grid.id',      password: 'Password', full_name: 'Warga',              role: 'warga' },
+  { email: 'admin@grid.id',      password: 'password', full_name: 'Admin GRID',        role: 'admin' },
+  { email: 'supervisor@grid.id', password: 'password', full_name: 'Supervisor UID Bali', role: 'supervisor' },
+  { email: 'petugas@grid.id',    password: 'password', full_name: 'Petugas Lapangan',   role: 'petugas' },
+  { email: 'hardware@grid.id',   password: 'password', full_name: 'Tim Hardware',       role: 'hardware' },
+  { email: 'warga@grid.id',      password: 'password', full_name: 'Warga',              role: 'warga' },
 ];
 
 async function main() {
