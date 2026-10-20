@@ -58,10 +58,10 @@ export default function Tentang() {
         </p>
       </HeroIn>
 
-      <HeroIn delay={0.16} className="mt-8">
+            <HeroIn delay={0.16} className="mt-8 w-full sm:w-auto">
         <Link
           href="/beranda"
-          className="group inline-flex items-center gap-2 rounded-full border border-white bg-linear-to-r from-[#ffbf00] to-[#007dff] px-8 py-4 font-heading text-lg font-bold text-white shadow-[0_8px_20px_#0000004D] transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-105 hover:shadow-[0_0_20px_#FFF4A3F2,0_0_45px_#FFF08CD9,0_0_80px_#FFEB7899]"
+          className="group inline-flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-full border border-white bg-linear-to-r from-[#ffbf00] to-[#007dff] px-6 py-3.5 font-heading text-base font-bold text-white shadow-[0_8px_20px_#0000004D] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_0_20px_#FFF4A3F2,0_0_45px_#FFF08CD9,0_0_80px_#FFEB7899] sm:w-auto sm:px-8 sm:py-4 sm:text-lg sm:hover:scale-105"
         >
           <FontAwesomeIcon icon={faMap} className="h-4 w-4 drop-shadow-[0_2px_3px_#00000080]" />
           <span className="[text-shadow:0_2px_4px_#00000073]">
@@ -85,226 +85,226 @@ export default function Tentang() {
 </section>
 
       {/* Problem & opportunity */}
-    <section className="bg-surface-container-lowest py-section-gap">
-  <style>{`
-    @keyframes gridid-twinkle {
-      0%, 100% { transform: scale(0.4) rotate(0deg); opacity: 0; }
-      50% { transform: scale(1) rotate(45deg); opacity: 1; }
-    }
-    @keyframes gridid-ring {
-      0% { transform: scale(1); opacity: 0.7; }
-      100% { transform: scale(1.06); opacity: 0; }
-    }
-    @keyframes gridid-shimmer {
-      0% { transform: translateX(-120%) skewX(-20deg); }
-      100% { transform: translateX(260%) skewX(-20deg); }
-    }
-    @keyframes gridid-shake {
-      0%, 100% { transform: rotate(0deg); }
-      25% { transform: rotate(-4deg); }
-      75% { transform: rotate(4deg); }
-    }
-    @keyframes gridid-wiggle {
-      0%, 100% { transform: translateY(0) rotate(0deg); }
-      25% { transform: translateY(-4px) rotate(-5deg); }
-      50% { transform: translateY(0) rotate(0deg); }
-      75% { transform: translateY(-4px) rotate(5deg); }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .gridid-anim { animation: none !important; }
-    }
-  `}</style>
+      <section className="bg-surface-container-lowest py-12 md:py-16">
+        <style>{`
+          @keyframes gridid-twinkle {
+            0%, 100% { transform: scale(0.4) rotate(0deg); opacity: 0; }
+            50% { transform: scale(1) rotate(45deg); opacity: 1; }
+          }
+          @keyframes gridid-ring {
+            0% { transform: scale(1); opacity: 0.7; }
+            100% { transform: scale(1.06); opacity: 0; }
+          }
+          @keyframes gridid-shimmer {
+            0% { transform: translateX(-120%) skewX(-20deg); }
+            100% { transform: translateX(260%) skewX(-20deg); }
+          }
+          @keyframes gridid-shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-4deg); }
+            75% { transform: rotate(4deg); }
+          }
+          @keyframes gridid-wiggle {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-4px) rotate(-5deg); }
+            50% { transform: translateY(0) rotate(0deg); }
+            75% { transform: translateY(-4px) rotate(5deg); }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .gridid-anim { animation: none !important; }
+          }
+        `}</style>
 
-  <div className="mx-auto max-w-7xl px-margin-mobile pt-2 md:px-gutter">
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-      {/* ===== KIRI: MENUNGGU GANGGUAN  <->  PELAPORAN REAKTIF ===== */}
-      <Reveal>
-        <div className="group relative h-full transition-transform duration-300 ease-out hover:-translate-y-3 focus-within:-translate-y-3">
-          <div
-            tabIndex={0}
-            className="relative grid h-full min-h-57.5 cursor-pointer rounded-2xl outline-none focus-visible:ring-4 focus-visible:ring-red-300"
-          >
-            {/* Kotak putih outline merah */}
-            <span
-              aria-hidden="true"
-              className="absolute inset-0 rounded-2xl border-2 border-red-500 bg-card-surface shadow-[0_12px_28px_-10px_rgba(220,38,38,0.35),0_4px_10px_rgba(13,27,42,0.08)] transition-opacity duration-300 group-hover:opacity-0 group-focus-within:opacity-0"
-            />
-            {/* Kotak gradasi merah */}
-            <span
-              aria-hidden="true"
-              className="absolute inset-0 overflow-hidden rounded-2xl border-2 border-white bg-linear-to-br from-[#5f0f0f] via-[#b91c1c] to-[#f87171] opacity-0 shadow-[0_18px_36px_rgba(127,29,29,0.35)] transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100"
-            >
-              <span className="absolute inset-2 rounded-xl border border-white/70" />
-            </span>
+        <div className="mx-auto max-w-7xl px-margin-mobile md:px-gutter">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
+            {/* ===== KIRI: MENUNGGU GANGGUAN  <->  PELAPORAN REAKTIF ===== */}
+            <Reveal>
+              <div className="group relative h-full transition-transform duration-300 ease-out hover:-translate-y-3 focus-within:-translate-y-3">
+                <div
+                  tabIndex={0}
+                  className="relative grid h-full cursor-pointer rounded-2xl outline-none focus-visible:ring-4 focus-visible:ring-red-300 md:min-h-57.5"
+                >
+                  {/* Kotak putih outline merah */}
+                  <span
+                    aria-hidden="true"
+                    className="absolute inset-0 rounded-2xl border-2 border-red-500 bg-card-surface shadow-[0_12px_28px_-10px_#DC262659,0_4px_10px_#0D1B2A14] transition-opacity duration-300 group-hover:opacity-0 group-focus-within:opacity-0"
+                  />
+                  {/* Kotak gradasi merah */}
+                  <span
+                    aria-hidden="true"
+                    className="absolute inset-0 overflow-hidden rounded-2xl border-2 border-white bg-linear-to-br from-[#5f0f0f] via-[#b91c1c] to-[#f87171] opacity-0 shadow-[0_18px_36px_#7F1D1D59] transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100"
+                  >
+                    <span className="absolute inset-2 rounded-xl border border-white/70" />
+                  </span>
 
-            {/* Teks: Menunggu Gangguan */}
-            <div className="relative z-10 col-start-1 row-start-1 flex items-center py-8 pl-8 pr-[42%] text-left transition-opacity duration-300 group-hover:opacity-0 group-focus-within:opacity-0">
-              <div className="flex w-full flex-col items-start gap-2">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-error-container text-on-error-container">
-                  <FontAwesomeIcon icon={faExclamationTriangle} className="h-4 w-4" />
+                  {/* Maskot menunggu: di atas teks (mobile), di kanan box (md+) */}
+                  <div className="pointer-events-none relative z-20 col-start-1 row-start-1 flex h-40 origin-center items-center justify-center pt-6 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-50 group-hover:opacity-0 group-focus-within:scale-50 group-focus-within:opacity-0 sm:h-44 md:absolute md:inset-y-5 md:right-5 md:h-auto md:w-[34%] md:pt-0">
+                    <img
+                      src="/maskot-menunggu.png"
+                      alt="Maskot GRID·ID bingung menunggu gangguan"
+                      draggable={false}
+                      className="h-full w-auto max-w-full select-none object-contain drop-shadow-[0_8px_14px_#0000004D] md:h-auto md:max-h-full"
+                    />
+                  </div>
+
+                  {/* Maskot reaktif (pop up saat hover/klik) */}
+                  <div className="pointer-events-none relative z-20 col-start-1 row-start-1 flex h-40 origin-center scale-50 items-center justify-center pt-6 opacity-0 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-100 group-hover:opacity-100 group-hover:delay-100 group-focus-within:scale-100 group-focus-within:opacity-100 group-focus-within:delay-100 sm:h-44 md:absolute md:inset-y-5 md:right-5 md:h-auto md:w-[34%] md:pt-0">
+                    <img
+                      src="/maskot-reaktif.png"
+                      alt="Maskot GRID·ID kaget karena gangguan listrik"
+                      draggable={false}
+                      className="gridid-anim h-full w-auto max-w-full select-none object-contain drop-shadow-[0_8px_14px_#00000059] group-hover:animate-[gridid-shake_0.5s_ease-in-out_0.6s_infinite] group-focus-within:animate-[gridid-shake_0.5s_ease-in-out_0.6s_infinite] md:h-auto md:max-h-full"
+                    />
+                  </div>
+
+                  {/* Teks: Menunggu Gangguan */}
+                  <div className="relative z-10 col-start-1 row-start-2 flex items-start px-6 pb-6 pt-1 text-center transition-opacity duration-300 group-hover:opacity-0 group-focus-within:opacity-0 md:row-start-1 md:items-center md:py-8 md:pl-8 md:pr-[42%] md:text-left">
+                    <div className="flex w-full flex-col items-center gap-2 md:items-start">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-error-container text-on-error-container">
+                        <FontAwesomeIcon icon={faExclamationTriangle} className="h-4 w-4" />
+                      </div>
+                      <h3 className="font-headline-md text-headline-md leading-tight text-red-700 md:whitespace-nowrap">
+                        Menunggu Gangguan
+                      </h3>
+                      <p className="mx-auto max-w-75 font-body-md text-[13px] leading-5 text-red-600 sm:text-sm sm:leading-5 md:mx-0 md:min-h-20">
+                        Gangguan terjadi, laporan masuk, lalu penanganan dimulai. Tanda-tanda risiko pada
+                        aset bisa saja terlewat sebelum menjadi masalah.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Teks: Pelaporan Reaktif */}
+                  <div className="relative z-10 col-start-1 row-start-2 flex items-start px-6 pb-6 pt-1 text-center opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100 md:row-start-1 md:items-center md:py-8 md:pl-8 md:pr-[42%] md:text-left">
+                    <div className="flex w-full flex-col items-center gap-2 md:items-start">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 text-white">
+                        <FontAwesomeIcon icon={faExclamationTriangle} className="h-4 w-4" />
+                      </div>
+                      <h3 className="font-headline-md text-headline-md leading-tight text-white md:whitespace-nowrap">
+                        Pelaporan Reaktif
+                      </h3>
+                      <p className="mx-auto max-w-65 font-body-md text-[13px] leading-5 text-white sm:text-sm sm:leading-5 md:mx-0 md:min-h-20">
+                        Akibatnya, gangguan listrik jadi lebih lama dan biaya perbaikan tinggi, menurunkan
+                        keandalan utilitas.
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="font-headline-md text-headline-md leading-tight text-red-700 md:whitespace-nowrap">
-                  Menunggu Gangguan
-                </h3>
-                <p className="min-h-20 max-w-75 font-body-md text-[13px] leading-5 text-red-600 sm:text-sm sm:leading-5">
-                  Gangguan terjadi, laporan masuk, lalu penanganan dimulai. Tanda-tanda risiko pada
-                  aset bisa saja terlewat sebelum menjadi masalah.
-                </p>
               </div>
-            </div>
+            </Reveal>
 
-            {/* Teks: Pelaporan Reaktif */}
-            <div className="relative z-10 col-start-1 row-start-1 flex items-center py-8 pl-8 pr-[42%] text-left opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100">
-              <div className="flex w-full flex-col items-start gap-2">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 text-white">
-                  <FontAwesomeIcon icon={faExclamationTriangle} className="h-4 w-4" />
+            {/* ===== KANAN: PEMELIHARAAN PREDIKTIF  <->  JAGA LISTRIK ANDAL ===== */}
+            <Reveal delay={0.1}>
+              <div className="group relative h-full transition-transform duration-300 ease-out hover:-translate-y-3 focus-within:-translate-y-3">
+                {/* Bintang berkelap-kelip di sekitar kartu */}
+                {[
+                  { top: "-14px", left: "12%", s: 16, d: "0s" },
+                  { top: "18%", left: "-18px", s: 20, d: "0.3s" },
+                  { top: "65%", left: "-14px", s: 14, d: "0.7s" },
+                  { top: "-12px", left: "58%", s: 14, d: "0.5s" },
+                  { top: "12%", right: "-18px", s: 18, d: "0.2s" },
+                  { top: "72%", right: "-16px", s: 22, d: "0.9s" },
+                  { bottom: "-16px", left: "30%", s: 16, d: "0.6s" },
+                  { bottom: "-14px", right: "22%", s: 14, d: "0.1s" },
+                ].map((p, i) => (
+                  <span
+                    key={i}
+                    aria-hidden="true"
+                    className="gridid-anim pointer-events-none absolute z-30 leading-none text-yellow-300 opacity-0 drop-shadow-[0_0_6px_#FACC15E6] group-hover:animate-[gridid-twinkle_1.6s_ease-in-out_infinite] group-focus-within:animate-[gridid-twinkle_1.6s_ease-in-out_infinite]"
+                    style={{
+                      top: p.top,
+                      bottom: p.bottom,
+                      left: p.left,
+                      right: p.right,
+                      fontSize: p.s,
+                      animationDelay: p.d,
+                    }}
+                  >
+                    ✦
+                  </span>
+                ))}
+
+                {/* Cincin kuning berdenyut */}
+                <span
+                  aria-hidden="true"
+                  className="gridid-anim pointer-events-none absolute inset-0 z-0 rounded-2xl border-2 border-yellow-300 opacity-0 group-hover:animate-[gridid-ring_1.4s_ease-out_infinite] group-focus-within:animate-[gridid-ring_1.4s_ease-out_infinite]"
+                />
+
+                <div
+                  tabIndex={0}
+                  className="relative grid h-full cursor-pointer rounded-2xl outline-none focus-visible:ring-4 focus-visible:ring-yellow-300 md:min-h-57.5"
+                >
+                  {/* Kotak putih outline biru */}
+                  <span
+                    aria-hidden="true"
+                    className="absolute inset-0 rounded-2xl border-2 border-l-4 border-blue-600 bg-card-surface shadow-[0_12px_28px_-10px_#2563EB59,0_4px_10px_#0D1B2A14] transition-opacity duration-300 group-hover:opacity-0 group-focus-within:opacity-0"
+                  />
+                  {/* Kotak gradasi biru + glow kuning + kilau */}
+                  <span
+                    aria-hidden="true"
+                    className="absolute inset-0 overflow-hidden rounded-2xl border-2 border-yellow-300 bg-linear-to-br from-[#0a1f5c] via-[#1d4ed8] to-[#60a5fa] opacity-0 shadow-[0_0_0_2px_#FDE047E6,0_0_44px_10px_#FACC158C,0_24px_40px_#0D1B2A66] transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100"
+                  >
+                    <span className="gridid-anim pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-linear-to-r from-transparent via-white/30 to-transparent group-hover:animate-[gridid-shimmer_1.8s_ease-in-out_infinite] group-focus-within:animate-[gridid-shimmer_1.8s_ease-in-out_infinite]" />
+                  </span>
+
+                  {/* Maskot prediktif: di atas teks (mobile), di kanan box (md+) */}
+                  <div className="pointer-events-none relative z-20 col-start-1 row-start-1 flex h-40 origin-center items-center justify-center pt-6 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-50 group-hover:opacity-0 group-focus-within:scale-50 group-focus-within:opacity-0 sm:h-44 md:absolute md:inset-y-5 md:right-5 md:h-auto md:w-[34%] md:pt-0">
+                    <img
+                      src="/maskot-prediktif.png"
+                      alt="Maskot GRID·ID memeriksa dengan kaca pembesar"
+                      draggable={false}
+                      className="h-full w-auto max-w-full select-none object-contain drop-shadow-[0_8px_14px_#0000004D] md:h-auto md:max-h-full"
+                    />
+                  </div>
+
+                  {/* Maskot jaga (pop up saat hover/klik) */}
+                  <div className="pointer-events-none relative z-20 col-start-1 row-start-1 flex h-40 origin-center scale-50 items-center justify-center pt-6 opacity-0 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-100 group-hover:opacity-100 group-hover:delay-100 group-focus-within:scale-100 group-focus-within:opacity-100 group-focus-within:delay-100 sm:h-44 md:absolute md:inset-y-5 md:right-5 md:h-auto md:w-[34%] md:pt-0">
+                    <img
+                      src="/maskot-jaga.png"
+                      alt="Maskot GRID·ID memegang hati hijau"
+                      draggable={false}
+                      className="gridid-anim h-full w-auto max-w-full select-none object-contain drop-shadow-[0_8px_14px_#00000059] group-hover:animate-[gridid-wiggle_1s_ease-in-out_0.6s_infinite] group-focus-within:animate-[gridid-wiggle_1s_ease-in-out_0.6s_infinite] md:h-auto md:max-h-full"
+                    />
+                  </div>
+
+                  {/* Teks: Pemeliharaan Prediktif */}
+                  <div className="relative z-10 col-start-1 row-start-2 flex items-start px-6 pb-6 pt-1 text-center transition-opacity duration-300 group-hover:opacity-0 group-focus-within:opacity-0 md:row-start-1 md:items-center md:py-8 md:pl-8 md:pr-[42%] md:text-left">
+                    <div className="flex w-full flex-col items-center gap-2 md:items-start">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-container text-on-primary">
+                        <FontAwesomeIcon icon={faBolt} className="h-4 w-4" />
+                      </div>
+                      <h3 className="font-headline-md text-headline-md leading-tight text-blue-900 md:whitespace-nowrap">
+                        Pemeliharaan Prediktif
+                      </h3>
+                      <p className="mx-auto max-w-57.5 font-body-md text-[13px] leading-5 text-blue-800 sm:text-sm sm:leading-5 md:mx-0 md:min-h-20">
+                        Melalui foto, data cuaca, informasi aset, GRID.ID menggunakan AI untuk membantu
+                        mengenali indikasi kerusakan dan menentukan aset yang perlu diprioritaskan
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Teks: Jaga Listrik Andal */}
+                  <div className="relative z-10 col-start-1 row-start-2 flex items-start px-6 pb-6 pt-1 text-center opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100 md:row-start-1 md:items-center md:py-8 md:pl-8 md:pr-[42%] md:text-left">
+                    <div className="flex w-full flex-col items-center gap-2 md:items-start">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-yellow-300 text-blue-950 shadow-[0_0_20px_#FACC15E6]">
+                        <FontAwesomeIcon icon={faBolt} className="h-4 w-4" />
+                      </div>
+                      <h3 className="font-headline-md text-headline-md leading-tight text-yellow-300 [text-shadow:0_0_14px_#FACC1599] md:whitespace-nowrap">
+                        Jaga Listrik Andal
+                      </h3>
+                      <p className="mx-auto max-w-57.5 font-body-md text-[13px] leading-5 text-yellow-300 sm:text-sm sm:leading-5 md:mx-0 md:min-h-20">
+                        Lihat kabel menjuntai atau tiang miring? Scan, laporkan, nikmati listrik yang lebih
+                        andal!
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="font-headline-md text-headline-md leading-tight text-white md:whitespace-nowrap">
-                  Pelaporan Reaktif
-                </h3>
-                <p className="min-h-20 max-w-65 font-body-md text-[13px] leading-5 text-white sm:text-sm sm:leading-5">
-                  Akibatnya, gangguan listrik jadi lebih lama dan biaya perbaikan tinggi, menurunkan
-                  keandalan utilitas.
-                </p>
               </div>
-            </div>
-
-            {/* Maskot menunggu (di dalam box, kanan) */}
-            <div className="pointer-events-none absolute inset-y-5 right-5 z-20 flex w-[34%] origin-center items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-50 group-hover:opacity-0 group-focus-within:scale-50 group-focus-within:opacity-0">
-              <img
-                src="/maskot-menunggu.png"
-                alt="Maskot GRID·ID bingung menunggu gangguan"
-                draggable={false}
-                className="max-h-full max-w-full select-none object-contain drop-shadow-[0_8px_14px_rgba(0,0,0,0.3)]"
-              />
-            </div>
-
-            {/* Maskot reaktif (pop up saat hover/klik) */}
-            <div className="pointer-events-none absolute inset-y-5 right-5 z-20 flex w-[34%] origin-center scale-50 items-center justify-center opacity-0 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-100 group-hover:opacity-100 group-hover:delay-100 group-focus-within:scale-100 group-focus-within:opacity-100 group-focus-within:delay-100">
-              <img
-                src="/maskot-reaktif.png"
-                alt="Maskot GRID·ID kaget karena gangguan listrik"
-                draggable={false}
-                className="gridid-anim max-h-full max-w-full select-none object-contain drop-shadow-[0_8px_14px_rgba(0,0,0,0.35)] group-hover:animate-[gridid-shake_0.5s_ease-in-out_0.6s_infinite] group-focus-within:animate-[gridid-shake_0.5s_ease-in-out_0.6s_infinite]"
-              />
-            </div>
+            </Reveal>
           </div>
         </div>
-      </Reveal>
-
-      {/* ===== KANAN: PEMELIHARAAN PREDIKTIF  <->  JAGA LISTRIK ANDAL ===== */}
-      <Reveal delay={0.1}>
-        <div className="group relative h-full transition-transform duration-300 ease-out hover:-translate-y-3 focus-within:-translate-y-3">
-          {/* Bintang berkelap-kelip di sekitar kartu */}
-          {[
-            { top: "-14px", left: "12%", s: 16, d: "0s" },
-            { top: "18%", left: "-18px", s: 20, d: "0.3s" },
-            { top: "65%", left: "-14px", s: 14, d: "0.7s" },
-            { top: "-12px", left: "58%", s: 14, d: "0.5s" },
-            { top: "12%", right: "-18px", s: 18, d: "0.2s" },
-            { top: "72%", right: "-16px", s: 22, d: "0.9s" },
-            { bottom: "-16px", left: "30%", s: 16, d: "0.6s" },
-            { bottom: "-14px", right: "22%", s: 14, d: "0.1s" },
-          ].map((p, i) => (
-            <span
-              key={i}
-              aria-hidden="true"
-              className="gridid-anim pointer-events-none absolute z-30 leading-none text-yellow-300 opacity-0 drop-shadow-[0_0_6px_rgba(250,204,21,0.9)] group-hover:animate-[gridid-twinkle_1.6s_ease-in-out_infinite] group-focus-within:animate-[gridid-twinkle_1.6s_ease-in-out_infinite]"
-              style={{
-                top: p.top,
-                bottom: p.bottom,
-                left: p.left,
-                right: p.right,
-                fontSize: p.s,
-                animationDelay: p.d,
-              }}
-            >
-              ✦
-            </span>
-          ))}
-
-          {/* Cincin kuning berdenyut */}
-          <span
-            aria-hidden="true"
-            className="gridid-anim pointer-events-none absolute inset-0 z-0 rounded-2xl border-2 border-yellow-300 opacity-0 group-hover:animate-[gridid-ring_1.4s_ease-out_infinite] group-focus-within:animate-[gridid-ring_1.4s_ease-out_infinite]"
-          />
-
-          <div
-            tabIndex={0}
-            className="relative grid h-full min-h-57.5 cursor-pointer rounded-2xl outline-none focus-visible:ring-4 focus-visible:ring-yellow-300"
-          >
-            {/* Kotak putih outline biru */}
-            <span
-              aria-hidden="true"
-              className="absolute inset-0 rounded-2xl border-2 border-l-4 border-blue-600 bg-card-surface shadow-[0_12px_28px_-10px_rgba(37,99,235,0.35),0_4px_10px_rgba(13,27,42,0.08)] transition-opacity duration-300 group-hover:opacity-0 group-focus-within:opacity-0"
-            />
-            {/* Kotak gradasi biru + glow kuning + kilau */}
-            <span
-              aria-hidden="true"
-              className="absolute inset-0 overflow-hidden rounded-2xl border-2 border-yellow-300 bg-linear-to-br from-[#0a1f5c] via-[#1d4ed8] to-[#60a5fa] opacity-0 shadow-[0_0_0_2px_rgba(253,224,71,0.9),0_0_44px_10px_rgba(250,204,21,0.55),0_24px_40px_rgba(13,27,42,0.4)] transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100"
-            >
-              <span className="gridid-anim pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-linear-to-r from-transparent via-white/30 to-transparent group-hover:animate-[gridid-shimmer_1.8s_ease-in-out_infinite] group-focus-within:animate-[gridid-shimmer_1.8s_ease-in-out_infinite]" />
-            </span>
-
-            {/* Teks: Pemeliharaan Prediktif */}
-            <div className="relative z-10 col-start-1 row-start-1 flex items-center py-8 pl-8 pr-[42%] text-left transition-opacity duration-300 group-hover:opacity-0 group-focus-within:opacity-0">
-              <div className="flex w-full flex-col items-start gap-2">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-container text-on-primary">
-                  <FontAwesomeIcon icon={faBolt} className="h-4 w-4" />
-                </div>
-                <h3 className="font-headline-md text-headline-md leading-tight text-blue-900 md:whitespace-nowrap">
-                  Pemeliharaan Prediktif
-                </h3>
-                <p className="min-h-20 max-w-57.5 font-body-md text-[13px] leading-5 text-blue-800 sm:text-sm sm:leading-5">
-                  Melalui foto, data cuaca, informasi aset, GRID.ID menggunakan AI untuk membantu
-                  mengenali indikasi kerusakan dan menentukan aset yang perlu diprioritaskan
-                </p>
-              </div>
-            </div>
-
-            {/* Teks: Jaga Listrik Andal */}
-            <div className="relative z-10 col-start-1 row-start-1 flex items-center py-8 pl-8 pr-[42%] text-left opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100">
-              <div className="flex w-full flex-col items-start gap-2">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-yellow-300 text-blue-950 shadow-[0_0_20px_rgba(250,204,21,0.9)]">
-                  <FontAwesomeIcon icon={faBolt} className="h-4 w-4" />
-                </div>
-                <h3 className="font-headline-md text-headline-md leading-tight text-yellow-300 [text-shadow:0_0_14px_rgba(250,204,21,0.6)] md:whitespace-nowrap">
-                  Jaga Listrik Andal
-                </h3>
-                <p className="min-h-20 max-w-57.5 font-body-md text-[13px] leading-5 text-yellow-300 sm:text-sm sm:leading-5">
-                  Lihat kabel menjuntai atau tiang miring? Scan, laporkan, nikmati listrik yang lebih
-                  andal!
-                </p>
-              </div>
-            </div>
-
-            {/* Maskot prediktif (di dalam box, kanan) */}
-            <div className="pointer-events-none absolute inset-y-5 right-5 z-20 flex w-[34%] origin-center items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-50 group-hover:opacity-0 group-focus-within:scale-50 group-focus-within:opacity-0">
-              <img
-                src="/maskot-prediktif.png"
-                alt="Maskot GRID·ID memeriksa dengan kaca pembesar"
-                draggable={false}
-                className="max-h-full max-w-full select-none object-contain drop-shadow-[0_8px_14px_rgba(0,0,0,0.3)]"
-              />
-            </div>
-
-            {/* Maskot jaga (pop up saat hover/klik) */}
-            <div className="pointer-events-none absolute inset-y-5 right-5 z-20 flex w-[34%] origin-center scale-50 items-center justify-center opacity-0 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-100 group-hover:opacity-100 group-hover:delay-100 group-focus-within:scale-100 group-focus-within:opacity-100 group-focus-within:delay-100">
-              <img
-                src="/maskot-jaga.png"
-                alt="Maskot GRID·ID memegang hati hijau"
-                draggable={false}
-                className="gridid-anim max-h-full max-w-full select-none object-contain drop-shadow-[0_8px_14px_rgba(0,0,0,0.35)] group-hover:animate-[gridid-wiggle_1s_ease-in-out_0.6s_infinite] group-focus-within:animate-[gridid-wiggle_1s_ease-in-out_0.6s_infinite]"
-              />
-            </div>
-          </div>
-        </div>
-      </Reveal>
-    </div>
-  </div>
-</section>
+      </section>
       {/* Positioning quote */}
-    <section className="gridid-quote-section relative isolate overflow-hidden bg-primary pt-16 text-on-primary md:pt-20">
+    <section className="gridid-quote-section relative isolate overflow-hidden bg-primary pt-10 text-on-primary md:pt-14">
   <style>{`
     /* Penanda "section sudah terlihat" (0 -> 1), diisi oleh scroll */
     @property --gridid-in {
@@ -401,7 +401,7 @@ export default function Tentang() {
 
   <div className="gridid-flag mx-auto grid max-w-300 grid-cols-1 items-stretch gap-0 px-margin-mobile md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] md:gap-4 md:px-gutter">
     {/* KIRI: tanda petik di kiri, teks 4 baris rata kiri, GRID.ID di bawah */}
-    <Reveal className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-4 pb-8 text-left md:gap-x-6 md:pb-14">
+    <Reveal className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-3 pb-6 text-left md:gap-x-6 md:gap-y-4 md:pb-10">
       <FontAwesomeIcon
         icon={faQuoteLeft}
         className="h-7 w-7 self-center text-primary-fixed-dim drop-shadow-[0_2px_6px_#00000059] md:h-10 md:w-10"
@@ -440,7 +440,7 @@ export default function Tentang() {
     </Reveal>
 
     {/* KANAN: maskot lebih besar, menempel di bawah section */}
-    <div className="relative min-h-85 md:min-h-0">
+    <div className="relative min-h-72 md:min-h-0">
       {/* Glow kuning di belakang maskot */}
       <div className="gridid-glow pointer-events-none absolute inset-x-0 bottom-[4%] mx-auto h-[90%] w-[88%] rounded-full bg-[radial-gradient(circle,#ffd54a8c_0%,#ffd54a00_70%)] blur-xl" />
       <img
@@ -454,7 +454,7 @@ export default function Tentang() {
 </section>
 
       {/* Data sources */}
-      <section className="relative isolate overflow-hidden py-section-gap">
+      <section className="relative isolate overflow-hidden py-12 md:py-16">
   {/* Background image (ganti nama file sesuai gambar barumu) */}
   <div
     className="absolute inset-0 -z-20 bg-cover bg-center"
@@ -464,7 +464,7 @@ export default function Tentang() {
   <div className="absolute inset-0 -z-10 bg-linear-to-b from-[#ffffff] to-[#fff6cc] opacity-80" />
 
   <div className="mx-auto max-w-7xl px-margin-mobile md:px-gutter">
-    <Reveal className="mb-10 text-center">
+    <Reveal className="mb-8 text-center">
       <h3 className="mb-2 font-headline-sm text-headline-sm text-[#00247e]">
         Didukung oleh Data Terpercaya
       </h3>
@@ -473,7 +473,7 @@ export default function Tentang() {
       </p>
     </Reveal>
 
-    <div className="flex flex-wrap justify-center gap-6">
+    <div className="flex flex-wrap justify-center gap-4 md:gap-6">
       {sources.map((s, i) => {
         // Pilih tema warna berdasarkan label; kalau tidak cocok, pakai urutan (biru, kuning, hijau)
         const key = /bmkg|cuaca/i.test(s.label)
@@ -511,7 +511,7 @@ export default function Tentang() {
         return (
           <Reveal key={s.label} delay={i * 0.1}>
             <div
-              className={`relative isolate flex min-w-50 flex-col items-center gap-3 overflow-hidden rounded-2xl border border-white/40 px-8 py-6 ${theme.shadow}`}
+              className={`relative isolate flex min-w-50 flex-col items-center gap-3 overflow-hidden rounded-2xl border border-white/40 px-6 py-5 md:px-8 md:py-6 ${theme.shadow}`}
             >
               {/* Gradasi box, opacity 80% (teks & icon tetap solid) */}
               <span
@@ -549,14 +549,14 @@ export default function Tentang() {
 </section>
 
       {/* Impact stats */}
-<section className="bg-linear-to-b from-[#fff9da] to-[#ffffff] py-section-gap">
+<section className="bg-linear-to-b from-[#fff9da] to-[#ffffff] py-10 md:py-14">
   <div className="mx-auto max-w-7xl px-margin-mobile md:px-gutter">
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
       {stats.map(([n, l], i) => (
         <Reveal key={l} delay={i * 0.1}>
           {/* Outline 1px gradasi biru -> kuning (lewat wrapper p-px) + shadow rapat */}
           <div className="rounded-2xl bg-linear-to-r from-[#1a6bff] to-[#ffc21a] p-px shadow-[0_8px_16px_-6px_#0d1b2a66,0_2px_5px_#0d1b2a40]">
-            <div className="rounded-[15px] bg-card-surface p-8 text-center">
+            <div className="rounded-[15px] bg-card-surface p-6 text-center md:p-8">
               <div className="mb-2 bg-linear-to-r from-[#00247e] to-[#00c2d9] bg-clip-text font-headline-lg text-headline-lg text-transparent">
                 {n}
               </div>
@@ -570,7 +570,7 @@ export default function Tentang() {
 </section>
 
       {/* Team */}
-   <section className="relative isolate overflow-hidden bg-[#ffffff] py-section-gap md:py-24">
+   <section className="relative isolate overflow-hidden bg-[#ffffff] py-12 md:py-16">
   {/* Background image, opacity 20% (ganti nama file sesuai gambarmu) */}
   <div
     className="absolute inset-0 -z-10 bg-cover bg-center opacity-20"
@@ -578,7 +578,7 @@ export default function Tentang() {
   />
 
   <div className="mx-auto max-w-7xl px-margin-mobile md:px-gutter">
-    <Reveal className="mb-10 text-center">
+    <Reveal className="mb-8 text-center md:mb-10">
       {/* Heading + logo, satu baris, rata tengah */}
       <h3 className="mb-0 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 font-headline-md text-headline-md leading-tight">
         <span className="bg-linear-to-r from-[#00247e] to-[#4ea7ff] bg-clip-text text-transparent">
@@ -605,7 +605,7 @@ export default function Tentang() {
       </p>
     </Reveal>
 
-    <div className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-4">
+    <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-4 md:gap-x-6 md:gap-y-10">
       {team.map((member, i) => {
         // Gradasi kalem & saling nyambung kiri -> kanan:
         // biru -> biru toska -> amber -> oranye -> dark orange
@@ -619,7 +619,7 @@ export default function Tentang() {
 
         return (
           <Reveal key={member.name} delay={i * 0.08}>
-            <div className="flex flex-col items-center gap-5">
+            <div className="flex flex-col items-center gap-4">
               {/* Foto: glow halus + outline 1px + shadow */}
               <div className="relative mx-auto h-32 w-32">
                 {/* Glow halus di belakang, warnanya mengikuti outline */}
@@ -663,7 +663,7 @@ export default function Tentang() {
 </section>
 
       {/* CTA */}
-     <section className="gridid-cta-section relative isolate mb-0 overflow-hidden bg-primary pt-14 text-left md:pt-16">
+     <section className="gridid-cta-section relative isolate mb-0 overflow-hidden bg-primary pt-10 text-left md:pt-12">
   <style>{`
     .gridid-cta-section { view-timeline-name: --gridid-cta; }
 
@@ -705,7 +705,7 @@ export default function Tentang() {
   <Reveal>
     <div className="mx-auto grid max-w-275 grid-cols-1 items-stretch gap-0 px-margin-mobile md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:gap-6 md:px-gutter">
       {/* KIRI: teks rata kiri, tombol di bawah */}
-      <div className="flex flex-col items-start justify-center gap-5 pb-8 md:pb-16">
+      <div className="flex flex-col items-start justify-center gap-4 pb-6 md:gap-5 md:pb-12">
        <h2 className="font-headline-md text-headline-md font-extrabold leading-tight text-white ...">
   Bergabung menjaga <br /> jaringan di wilayahmu!
 </h2>
@@ -722,7 +722,7 @@ export default function Tentang() {
       </div>
 
       {/* KANAN: maskot, menempel di dasar section */}
-      <div className="relative min-h-70 md:min-h-0">
+      <div className="relative min-h-60 md:min-h-0">
         {/* Glow kuning lembut di belakang maskot */}
         <div className="gridid-cta-glow pointer-events-none absolute inset-x-0 bottom-[4%] mx-auto h-[85%] w-[85%] rounded-full bg-[radial-gradient(circle,#fff3a88c_0%,#fff3a800_70%)] blur-xl" />
         <img
