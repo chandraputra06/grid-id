@@ -5,13 +5,27 @@ import { supabase } from "@/lib/supabase";
 
 /* ============ PENGATURAN ============ */
 const AVATAR_FALLBACK = "/maskot-prediktif.png"; // dipakai kalau akun belum punya foto profil
-const NEXT_LEVEL_AT = 2000;
+const API_URL = (process.env.NEXT_PUBLIC_API_URL).replace(/\/$/, "");
+
+/* Panggil backend dengan token login Supabase */
+async function api(path, opts = {}) {
+  const { data } = await supabase.auth.getSession();
+  const token = data?.session?.access_token;
+  const res = await fetch(`${API_URL}${path}`, {
+    ...opts,
+    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+  });
+  const json = await res.json().catch(() => null);
+  if (!res.ok || !json || json.ok === false) throw new Error(json?.error?.message || "Gagal terhubung ke server");
+  return json.data;
+}
 
 const MASCOT_SRC = "/maskot-progresss.png";
 const MASCOT_LEADERBOARD = "/maskot-leaderboard.png";
 
 const MEDAL_IMAGES = true;
 
+/* Gaya visual medali per file gambar. Nama, deskripsi & syarat poin datang dari backend. */
 const MEDALS = [
   { file: "medali1.png", icon: "bolt", c: ["#FFF3B0", "#F5B301", "#B45309"] },
   { file: "medali2.png", icon: "storm", c: ["#BAE6FD", "#2563EB", "#1E3A8A"] },
@@ -22,12 +36,6 @@ const MEDALS = [
   { file: "medali7.png", icon: "water_drop", c: ["#A5F3FC", "#06B6D4", "#155E75"] },
   { file: "medali8.png", icon: "shield", c: ["#FECACA", "#EF4444", "#7F1D1D"] },
   { file: "medali9.png", icon: "emoji_events", c: ["#BAE6FD", "#2563EB", "#365314"] },
-];
-
-const MISI0 = [
-  { id: 1, label: "Laporan 1 Tiang Miring", sub: "Batas: 2 hari lagi", pts: 50, done: false },
-  { id: 2, label: "Validasi Cuaca Lokal", sub: "Selesai", pts: 20, done: true },
-  { id: 3, label: "Cek Skor Risiko Hari Ini", sub: "Batas: hari ini", pts: 10, done: false },
 ];
 
 const REWARDS = {
@@ -57,10 +65,13 @@ const PANTUN = [
 ];
 
 const fmt = (n) => Math.round(n).toLocaleString("id-ID");
-const rnd = () => Math.random().toString(36).slice(2, 6).toUpperCase();
 
-// "medali1.png" -> "Medali 1"
-const medalName = (m) => m.file.replace(/\.[^.]+$/, "").replace(/^medali(\d+)/i, "Level $1");
+/* Gabungkan gaya visual lokal dengan data medali dari backend (nama, deskripsi, syarat, terbuka/terkunci) */
+const mergeMedals = (list) =>
+  MEDALS.map((s) => {
+    const d = (list || []).find((x) => x.file === s.file) || {};
+    return { ...s, name: d.name || "", desc: d.desc || "", threshold: d.threshold ?? 0, unlocked: !!d.unlocked };
+  });
 
 // Bentuk data user dari akun Supabase yang sedang login
 function buildUser(u) {
@@ -151,7 +162,7 @@ function Mascot({ className = "" }) {
 
 function Medal({ m, size = 76, delay = 0 }) {
   return (
-    <div className="relative" style={{ width: size, height: size }}>
+    <div className="relative shrink-0" style={{ width: size, height: size, ...(m.unlocked ? null : { filter: "grayscale(1) brightness(.9)", opacity: 0.5 }) }}>
       <div
         className="absolute inset-0 rounded-full"
         style={{
@@ -169,7 +180,7 @@ function Medal({ m, size = 76, delay = 0 }) {
       >
         {MEDAL_IMAGES ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={`/${m.file}`} alt={medalName(m)} className="h-full w-full object-cover" />
+          <img src={`/${m.file}`} alt={m.name} className="h-full w-full object-cover" />
         ) : (
           <span className="material-symbols-outlined text-white drop-shadow-[0_2px_3px_rgba(0,0,0,.35)]" style={{ fontSize: size * 0.42, fontVariationSettings: "'FILL' 1" }}>{m.icon}</span>
         )}
@@ -219,9 +230,10 @@ function Modal({ onClose, label, children }) {
 }
 
 /* ============ GRAFIK PROGRESS + MASKOT ============ */
-function Chart({ points }) {
-  const W = 600, H = 210, PX = 34, PT = 34, PB = 34, maxV = 1600;
-  const data = [120, 260, 410, 640, 790, 980, points];
+function Chart({ points, history }) {
+  const data = [...(history?.length === 6 ? history : [0, 0, 0, 0, 0, 0]), points];
+  const maxV = Math.max(100, Math.ceil(Math.max(...data) * 1.15));
+  const W = 600, H = 210, PX = 34, PT = 34, PB = 34;
   const pts = data.map((v, i) => ({
     x: PX + (i * (W - 2 * PX)) / (data.length - 1),
     y: H - PB - (Math.min(v, maxV) / maxV) * (H - PT - PB),
@@ -271,11 +283,11 @@ function Chart({ points }) {
 }
 
 /* ============ MODAL MEDALI ============ */
-function MedalModal({ m, onClose }) {
+function MedalModal({ m, points, onClose }) {
   return (
-    <Modal onClose={onClose} label={`Detail ${medalName(m)}`}>
+    <Modal onClose={onClose} label={`Detail ${m.name}`}>
       <div
-        className="relative w-full max-w-sm overflow-hidden rounded-3xl p-8 text-center text-white"
+        className="relative w-full max-w-sm overflow-hidden rounded-3xl p-6 text-center text-white sm:p-8"
         style={{ background: "linear-gradient(160deg,#0A2259,#1D4ED8)", animation: "msPopIn .55s cubic-bezier(.3,1.4,.5,1) both", boxShadow: `0 0 60px ${m.c[1]}88` }}
       >
         <div className="pointer-events-none absolute left-1/2 top-24 h-48 w-48 -translate-x-1/2 rounded-full blur-3xl" style={{ background: m.c[1], opacity: 0.55 }} />
@@ -285,8 +297,11 @@ function MedalModal({ m, onClose }) {
           </div>
           <Burst n={12} colors={[m.c[0], "#FDE047", "#fff"]} />
         </div>
-        <h3 className="relative mt-6 font-headline-sm text-headline-sm">{medalName(m)}</h3>
-        <p className="relative mt-1 text-sm text-white/80">Lencana dari misimu. Deskripsi medali akan tampil di sini.</p>
+        <h3 className="relative mt-6 wrap-break-words font-headline-sm text-headline-sm">{m.name}</h3>
+        <p className="relative mt-1 wrap-break-words text-sm text-white/80">{m.desc}</p>
+        <p className="relative mt-2 wrap-break-words text-xs font-bold text-[#FDE047]">
+          {m.unlocked ? `Terbuka · ${fmt(m.threshold)} poin` : `Terkunci · butuh ${fmt(m.threshold)} poin (kurang ${fmt(Math.max(0, m.threshold - points))})`}
+        </p>
         <button onClick={onClose} autoFocus className="relative mt-6 rounded-full bg-white px-6 py-2.5 font-label-bold text-label-bold text-[#1D4ED8] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_24px_rgba(253,224,71,.9)] active:scale-95">
           Tutup
         </button>
@@ -302,8 +317,9 @@ const notch = (where) => {
   return { WebkitMaskImage: g, maskImage: g, WebkitMaskComposite: "source-in", maskComposite: "intersect" };
 };
 
-function RewardModal({ kind, points, onRedeem, onClose }) {
-  const cfg = REWARDS[kind];
+function RewardModal({ kind, rewards, points, onRedeem, onClose }) {
+  const cfg = (rewards && rewards[kind]) || REWARDS[kind];
+  const [err, setErr] = useState("");
   const [sel, setSel] = useState(null);
   const [phase, setPhase] = useState("pick"); // pick | proc | done
   const [code, setCode] = useState("");
@@ -314,12 +330,18 @@ function RewardModal({ kind, points, onRedeem, onClose }) {
 
   const exchange = () => {
     if (!item || item.cost > points || phase !== "pick") return;
+    setErr("");
     setPhase("proc");
-    timer.current = setTimeout(() => {
-      onRedeem(item.cost);
-      setCode(`GRID-${rnd()}-${rnd()}`);
-      setPhase("done");
-    }, 1500);
+    const minWait = new Promise((r) => { timer.current = setTimeout(r, 1500); });
+    Promise.all([onRedeem(item), minWait])
+      .then(([res]) => {
+        setCode(res.code);
+        setPhase("done");
+      })
+      .catch((e) => {
+        setErr(e.message || "Gagal menukar poin");
+        setPhase("pick");
+      });
   };
 
   return (
@@ -328,17 +350,17 @@ function RewardModal({ kind, points, onRedeem, onClose }) {
         <div style={phase === "proc" ? { animation: "msShake .4s linear infinite" } : undefined}>
           {/* Bagian atas kupon */}
           <div className="overflow-hidden rounded-t-3xl bg-white" style={notch("bottom")}>
-            <div className="relative p-5 text-white" style={{ background: "linear-gradient(135deg,#F97316,#FB7185 55%,#EC4899)" }}>
+            <div className="relative p-5 pr-14 text-white" style={{ background: "linear-gradient(135deg,#F97316,#FB7185 55%,#EC4899)" }}>
               <button onClick={onClose} aria-label="Tutup" className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-white/20 transition-colors hover:bg-white/35">
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
               <div className="flex items-center gap-3">
-                <span className="grid h-12 w-12 place-items-center rounded-full bg-white/25 shadow-inner">
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white/25 shadow-inner">
                   <span className="material-symbols-outlined text-[26px]" style={{ fontVariationSettings: "'FILL' 1" }}>{cfg.icon}</span>
                 </span>
-                <div>
-                  <p className="font-headline-sm text-headline-sm">{phase === "done" ? "Berhasil ditukar!" : cfg.title}</p>
-                  <p className="text-xs text-white/85">{phase === "done" ? "Terima kasih sudah menjaga grid" : cfg.note}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="wrap-break-words font-headline-sm text-headline-sm leading-tight">{phase === "done" ? "Berhasil ditukar!" : cfg.title}</p>
+                  <p className="wrap-break-words text-xs text-white/85">{phase === "done" ? "Terima kasih sudah menjaga grid" : cfg.note}</p>
                 </div>
               </div>
             </div>
@@ -347,6 +369,7 @@ function RewardModal({ kind, points, onRedeem, onClose }) {
               {phase === "pick" && (
                 <div className="space-y-2">
                   <p className="text-xs font-semibold text-on-surface-variant">Pilih voucher</p>
+                  {err && <p className="wrap-break-words text-xs font-bold text-[#EF4444]">{err}</p>}
                   {cfg.items.map((it) => {
                     const lack = it.cost > points;
                     const on = sel === it.id;
@@ -359,11 +382,11 @@ function RewardModal({ kind, points, onRedeem, onClose }) {
                           on ? "border-[#F97316] bg-[#FFF3E8] shadow-[0_6px_16px_-6px_rgba(249,115,22,.7)]" : "border-outline-variant hover:border-[#FDBA74]"
                         } ${lack ? "cursor-not-allowed opacity-45" : "hover:-translate-y-0.5"}`}
                       >
-                        <span className={`material-symbols-outlined text-[22px] ${on ? "text-[#F97316]" : "text-outline"}`} style={on ? { fontVariationSettings: "'FILL' 1" } : undefined}>
+                        <span className={`material-symbols-outlined shrink-0 text-[22px] ${on ? "text-[#F97316]" : "text-outline"}`} style={on ? { fontVariationSettings: "'FILL' 1" } : undefined}>
                           {on ? "check_circle" : "radio_button_unchecked"}
                         </span>
-                        <span className="flex-1 font-label-bold text-label-bold">{it.name}</span>
-                        <span className="text-xs font-bold text-[#C2410C]">{lack ? "Poin kurang" : `${fmt(it.cost)} poin`}</span>
+                        <span className="min-w-0 flex-1 wrap-break-words font-label-bold text-label-bold">{it.name}</span>
+                        <span className="shrink-0 whitespace-nowrap text-right text-xs font-bold text-[#C2410C]">{lack ? "Poin kurang" : `${fmt(it.cost)} poin`}</span>
                       </button>
                     );
                   })}
@@ -383,13 +406,13 @@ function RewardModal({ kind, points, onRedeem, onClose }) {
                   <span className="msStamp grid h-20 w-20 place-items-center rounded-full border-4 border-[#16A34A] text-[#16A34A]">
                     <span className="material-symbols-outlined text-[44px]" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
                   </span>
-                  <p className="mt-3 font-label-bold text-label-bold">{item.name}</p>
+                  <p className="mt-3 max-w-full wrap-break-words font-label-bold text-label-bold">{item.name}</p>
                   {kind === "token" ? (
-                    <div className="mt-2 rounded-xl border-2 border-dashed border-[#F97316] bg-[#FFF3E8] px-4 py-2 font-mono text-base font-bold tracking-wider text-[#C2410C]">{code}</div>
+                    <div className="mt-2 max-w-full wrap-break-all rounded-xl border-2 border-dashed border-[#F97316] bg-[#FFF3E8] px-4 py-2 text-center font-mono text-base font-bold tracking-wider text-[#C2410C]">{code}</div>
                   ) : (
-                    <p className="mt-2 text-sm text-on-surface-variant">Donasimu tercatat atas namamu. Kode: <b>{code}</b></p>
+                    <p className="mt-2 max-w-full wrap-break-words text-sm text-on-surface-variant">Donasimu tercatat atas namamu. Kode: <b className="break-all">{code}</b></p>
                   )}
-                  <span className="msPlus mt-2 inline-block font-black text-[#EF4444]" style={{ animationIterationCount: 1 }}>−{fmt(item.cost)} poin</span>
+                  <span className="msPlus mt-2 inline-block whitespace-nowrap font-black text-[#EF4444]" style={{ animationIterationCount: 1 }}>−{fmt(item.cost)} poin</span>
                 </div>
               )}
             </div>
@@ -397,23 +420,23 @@ function RewardModal({ kind, points, onRedeem, onClose }) {
 
           {/* Bagian bawah kupon (stub) */}
           <div className="rounded-b-3xl border-t-2 border-dashed border-[#F9A8D4] bg-white px-5 pb-5 pt-6" style={notch("top")}>
-            <div className="flex items-center gap-3">
-              <div className="flex-1">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="min-w-0 flex-1 basis-24">
                 <p className="text-[11px] font-semibold text-on-surface-variant">Saldo poin</p>
-                <p className="flex items-center gap-1 text-lg font-black text-[#B45309]">
-                  <span className="material-symbols-outlined text-[20px] text-[#FACC15] drop-shadow-[0_0_6px_rgba(250,204,21,.9)]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
+                <p className="flex items-center gap-1 whitespace-nowrap text-lg font-black text-[#B45309]">
+                  <span className="material-symbols-outlined shrink-0 text-[20px] text-[#FACC15] drop-shadow-[0_0_6px_rgba(250,204,21,.9)]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
                   {fmt(sp)}
                 </p>
               </div>
               {phase === "done" ? (
-                <button onClick={onClose} autoFocus className="rounded-full px-6 py-3 font-label-bold text-label-bold text-white shadow-[0_8px_20px_-6px_rgba(236,72,153,.8)] transition-all hover:-translate-y-0.5 active:scale-95" style={{ background: "linear-gradient(90deg,#F59E0B,#F97316,#EC4899)" }}>
+                <button onClick={onClose} autoFocus className="shrink-0 whitespace-nowrap rounded-full px-6 py-3 font-label-bold text-label-bold text-white shadow-[0_8px_20px_-6px_rgba(236,72,153,.8)] transition-all hover:-translate-y-0.5 active:scale-95" style={{ background: "linear-gradient(90deg,#F59E0B,#F97316,#EC4899)" }}>
                   Selesai
                 </button>
               ) : (
                 <button
                   onClick={exchange}
                   disabled={!item || item.cost > points || phase !== "pick"}
-                  className="rounded-full px-6 py-3 font-label-bold text-label-bold text-white shadow-[0_8px_20px_-6px_rgba(236,72,153,.8)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_28px_rgba(251,191,36,.9)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                  className="shrink-0 whitespace-nowrap rounded-full px-6 py-3 font-label-bold text-label-bold text-white shadow-[0_8px_20px_-6px_rgba(236,72,153,.8)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_28px_rgba(251,191,36,.9)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
                   style={{ background: "linear-gradient(90deg,#F59E0B,#F97316,#EC4899)" }}
                 >
                   {phase === "proc" ? "Menukar…" : "Tukar Sekarang"}
@@ -442,14 +465,46 @@ export default function Misi() {
     return () => { off = true; };
   }, []);
 
-  const BOARD = [
-    { rank: 1, name: "Budi S.", pts: 2450 },
-    { rank: 2, name: "Siti A.", pts: 2100 },
-    { rank: 5, name: USER.short, me: true },
-  ];
+  /* Data gamifikasi dari backend: poin, level, misi, lencana, peringkat, reward */
+  const [me, setMe] = useState(null);
+  const [loadErr, setLoadErr] = useState(false);
+  const [hint, setHint] = useState({}); // id misi -> teks petunjuk sementara
+  const doneRef = useRef(null);
 
-  const [points, setPoints] = useState(1240);
-  const [misi, setMisi] = useState(MISI0);
+  const load = () =>
+    api("/api/gamifikasi/me")
+      .then((d) => {
+        // misi yang baru saja terpenuhi -> animasi +poin seperti sebelumnya
+        const prev = doneRef.current;
+        if (prev) {
+          const fresh = d.missions.find((m) => m.done && !prev.has(m.id));
+          if (fresh) {
+            setPop({ id: fresh.id, key: Date.now() });
+            setTimeout(() => setPop(null), 1300);
+          }
+        }
+        doneRef.current = new Set(d.missions.filter((m) => m.done).map((m) => m.id));
+        setMe(d);
+        setLoadErr(false);
+      })
+      .catch(() => setLoadErr(true));
+
+  useEffect(() => {
+    load();
+    const id = setInterval(load, 30000);
+    window.addEventListener("focus", load);
+    return () => { clearInterval(id); window.removeEventListener("focus", load); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const points = me?.points ?? 0; // total poin (dasar level & lencana)
+  const balance = me?.balance ?? 0; // saldo yang bisa ditukar
+  const level = me?.level ?? 1;
+  const nextAt = me?.next_level_at ?? me?.level_start ?? 1;
+  const misi = me?.missions ?? [];
+  const medals = mergeMedals(me?.medals);
+  const BOARD = (me?.board ?? []).map((b) => (b.me ? { ...b, name: USER.short } : b));
+  const rankDelta = me?.rank_delta ?? 0;
   const [pop, setPop] = useState(null);
   const [medal, setMedal] = useState(null);
   const [glowId, setGlowId] = useState(null);
@@ -461,20 +516,27 @@ export default function Misi() {
   useEffect(() => { setAvatarOk(true); }, [USER.avatar]);
 
   const shown = useAnimatedNumber(points, { from: 0, duration: 1400 });
-  const pct = Math.max(0, Math.min(100, (shown / NEXT_LEVEL_AT) * 100));
-  const remain = Math.max(0, NEXT_LEVEL_AT - points);
+  const pct = me?.max_level ? 100 : Math.max(0, Math.min(100, (shown / nextAt) * 100));
+  const remain = Math.max(0, nextAt - points);
 
   useEffect(() => {
     const id = setInterval(() => setPi((i) => (i + 1) % PANTUN.length), 7000);
     return () => clearInterval(id);
   }, []);
 
+  /* Misi terpenuhi otomatis dari aktivitas nyata (scan/laporan). Klik misi = cek ulang + tampilkan syaratnya. */
   const completeMisi = (m) => {
     if (m.done) return;
-    setMisi((l) => l.map((x) => (x.id === m.id ? { ...x, done: true, sub: "Selesai" } : x)));
-    setPoints((p) => p + m.pts);
-    setPop({ id: m.id, key: Date.now() });
-    setTimeout(() => setPop(null), 1300);
+    load();
+    setHint((h) => ({ ...h, [m.id]: m.hint }));
+    setTimeout(() => setHint((h) => ({ ...h, [m.id]: null })), 3500);
+  };
+
+  const redeem = async (item) => {
+    const r = await api("/api/gamifikasi/redeem", { method: "POST", body: JSON.stringify({ item_id: item.id }) });
+    setMe((d) => (d ? { ...d, balance: r.balance } : d));
+    load();
+    return r;
   };
 
   const openMedal = (m) => {
@@ -534,11 +596,11 @@ export default function Misi() {
       {/* Heading di luar box */}
       <Reveal>
         <div className="mb-8 flex flex-wrap items-center justify-center gap-3 text-center">
-          <span className="relative grid place-items-center">
+          <span className="relative grid shrink-0 place-items-center">
             <i className="msHalo absolute inset-0 rounded-full bg-[#FACC15]/60 blur-xl" />
             <span className="msFloat relative"><Bolt3D size={60} /></span>
           </span>
-          <h1 className="font-headline-md text-headline-md">
+          <h1 className="min-w-0 wrap-break-words font-headline-md text-headline-md">
             <span className="text-on-surface">Selamat Datang </span>
             <span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(90deg,#1D4ED8 0%,#3B82F6 35%,#F59E0B 72%,#FACC15 100%)" }}>
               Penjaga Grid!
@@ -550,7 +612,7 @@ export default function Misi() {
       {/* Box profil */}
       <Reveal delay={0.05}>
         <div
-          className="relative mb-6 overflow-hidden rounded-3xl p-6 text-white"
+          className="relative mb-6 overflow-hidden rounded-3xl p-5 text-white sm:p-6"
           style={{
             background: "linear-gradient(135deg,#0A2259 0%,#1D4ED8 55%,#3B82F6 100%)",
             boxShadow: "0 18px 40px -14px rgba(29,78,216,.7), inset 0 1px 0 rgba(255,255,255,.3), inset 0 -3px 0 rgba(0,0,0,.18)",
@@ -559,7 +621,7 @@ export default function Misi() {
           <div className="pointer-events-none absolute -right-10 -top-16 h-56 w-56 rounded-full bg-white/10 blur-2xl" />
           <div className="pointer-events-none absolute -bottom-20 left-10 h-48 w-48 rounded-full bg-[#38BDF8]/25 blur-3xl" />
           <div className="relative flex flex-wrap items-center gap-5">
-            <div className="rounded-full p-0.75 shadow-[0_0_24px_rgba(250,204,21,.55)]" style={{ background: "linear-gradient(135deg,#FDE047,#F97316)" }}>
+            <div className="shrink-0 rounded-full p-0.75 shadow-[0_0_24px_rgba(250,204,21,.55)]" style={{ background: "linear-gradient(135deg,#FDE047,#F97316)" }}>
               {avatarOk ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={USER.avatar} alt={`Foto profil ${USER.name}`} onError={() => setAvatarOk(false)} className="h-20 w-20 rounded-full bg-white object-cover sm:h-24 sm:w-24" />
@@ -568,29 +630,29 @@ export default function Misi() {
               )}
             </div>
 
-            <div className="min-w-55 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="font-headline-md text-headline-md leading-tight">{USER.name}</h2>
-                <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-[11px] font-bold">Level 4 · Penjaga Grid</span>
+            <div className="min-w-0 flex-1 basis-48">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <h2 className="min-w-0 max-w-full wrap-break-words font-headline-md text-headline-md leading-tight">{USER.name}</h2>
+                <span className="shrink-0 whitespace-nowrap rounded-full bg-white/15 px-2.5 py-0.5 text-[11px] font-bold">Level {level} · Penjaga Grid</span>
               </div>
-              {USER.username && <p className="text-sm text-white/75">{USER.username}</p>}
+              {USER.username && <p className="break-all text-sm text-white/75">{USER.username}</p>}
 
-              <div className="mt-3 flex items-center justify-between text-sm font-bold">
-                <span className="flex items-center gap-1">
+              <div className="mt-3 flex items-center justify-between gap-3 text-sm font-bold">
+                <span className="flex shrink-0 items-center gap-1 whitespace-nowrap">
                   <span className="material-symbols-outlined text-[22px] text-[#FDE047] drop-shadow-[0_0_8px_rgba(253,224,71,.95)]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
                   {fmt(shown)} poin
                 </span>
-                <span className="text-white/70">{fmt(NEXT_LEVEL_AT)}</span>
+                <span className="shrink-0 whitespace-nowrap text-white/70">{fmt(nextAt)}</span>
               </div>
-              <div className="relative mt-1.5 h-3.5 rounded-full bg-white/20 shadow-inner" role="progressbar" aria-valuemin={0} aria-valuemax={NEXT_LEVEL_AT} aria-valuenow={Math.round(points)} aria-label="Progres poin menuju Level 5">
+              <div className="relative mt-1.5 h-3.5 rounded-full bg-white/20 shadow-inner" role="progressbar" aria-valuemin={0} aria-valuemax={nextAt} aria-valuenow={Math.round(points)} aria-label={`Progres poin menuju Level ${level + 1}`}>
                 <div className="h-full rounded-full shadow-[0_0_14px_rgba(249,115,22,.8)]" style={{ width: `${pct}%`, background: "linear-gradient(90deg,#FDE047,#F59E0B 55%,#EF4444)" }} />
                 <span className="material-symbols-outlined pointer-events-none absolute top-1/2 text-[22px] text-[#FDE047] drop-shadow-[0_0_8px_rgba(253,224,71,1)]" style={{ left: `${pct}%`, transform: "translate(-50%,-50%)", fontVariationSettings: "'FILL' 1" }}>bolt</span>
               </div>
             </div>
 
-            <div className="hidden text-right sm:block">
-              <p className="text-xs text-white/75">Menuju Level 5</p>
-              <p className="font-label-bold text-label-bold">{fmt(remain)} poin lagi</p>
+            <div className="hidden shrink-0 whitespace-nowrap text-right sm:block">
+              <p className="text-xs text-white/75">{me?.max_level ? "Level maksimal" : `Menuju Level ${level + 1}`}</p>
+              <p className="font-label-bold text-label-bold">{me?.max_level ? "Selamat!" : `${fmt(remain)} poin lagi`}</p>
             </div>
           </div>
         </div>
@@ -598,32 +660,32 @@ export default function Misi() {
 
       <div className="mb-6 grid gap-6 lg:grid-cols-3">
         {/* Box besar: progress + lencana */}
-        <div className="lg:col-span-2">
+        <div className="min-w-0 lg:col-span-2">
           <Reveal delay={0.1}>
             <div className="rounded-3xl border border-outline-variant bg-card-surface p-5 shadow-[0_4px_12px_rgba(13,27,42,0.05)]">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <h2 className="flex items-center gap-2 font-headline-sm text-headline-sm">
-                  <span className="material-symbols-outlined text-[22px] text-[#1D4ED8]">show_chart</span> Progress Poinmu
+                <h2 className="flex min-w-0 items-center gap-2 font-headline-sm text-headline-sm">
+                  <span className="material-symbols-outlined shrink-0 text-[22px] text-[#1D4ED8]">show_chart</span> Progress Poinmu
                 </h2>
-                <span className="rounded-full bg-linear-to-r from-[#DBEAFE] to-[#FEF3C7] px-3 py-1 text-xs font-bold text-[#1E3A8A]">7 minggu terakhir</span>
+                <span className="shrink-0 whitespace-nowrap rounded-full bg-linear-to-r from-[#DBEAFE] to-[#FEF3C7] px-3 py-1 text-xs font-bold text-[#1E3A8A]">7 minggu terakhir</span>
               </div>
-              <Chart points={points} />
+              <Chart points={points} history={me?.history} />
 
-              <div className="mb-2 mt-5 flex items-center justify-between">
-                <h3 className="flex items-center gap-2 font-label-bold text-label-bold">
+              <div className="mb-2 mt-5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                <h3 className="flex shrink-0 items-center gap-2 font-label-bold text-label-bold">
                   <span className="material-symbols-outlined text-[20px] text-[#F59E0B]" style={{ fontVariationSettings: "'FILL' 1" }}>military_tech</span> Lencana
                 </h3>
-                <span className="text-xs text-on-surface-variant">{MEDALS.length} lencana · gulir untuk lihat lagi</span>
+                <span className="min-w-0 text-xs text-on-surface-variant">{medals.filter((m) => m.unlocked).length} dari {medals.length} lencana terbuka · gulir untuk lihat lagi</span>
               </div>
               {/* 3 lencana terlihat, sisanya digulir ke bawah */}
               <div className="relative">
                 <div className="grid max-h-44 snap-y snap-mandatory auto-rows-44 grid-cols-3 overflow-y-auto rounded-2xl bg-linear-to-b from-[#F4F8FF] to-white" style={{ scrollbarWidth: "thin" }} tabIndex={0} aria-label="Daftar lencana, gulir ke bawah untuk melihat lebih banyak">
-                  {MEDALS.map((m, i) => (
-                    <button key={m.file} onClick={() => openMedal(m)} className="group flex snap-start flex-col items-center justify-center gap-2 p-2 outline-none focus-visible:bg-[#EAF2FF]">
+                  {medals.map((m, i) => (
+                    <button key={m.file} onClick={() => openMedal(m)} className="group flex min-w-0 snap-start flex-col items-center justify-center gap-2 p-2 outline-none focus-visible:bg-[#EAF2FF]">
                       <span className={`rounded-full transition-transform duration-300 group-hover:-translate-y-1 group-hover:scale-110 group-active:scale-95 ${glowId === m.file ? "msGlowMedal" : ""}`}>
                         <Medal m={m} size={84} delay={(i % 3) * 0.5} />
                       </span>
-                      <span className="text-xs font-semibold text-on-surface-variant">{medalName(m)}</span>
+                      <span className="line-clamp-2 w-full wrap-break-words px-1 text-center text-xs font-semibold leading-tight text-on-surface-variant">{m.name}</span>
                     </button>
                   ))}
                 </div>
@@ -634,16 +696,16 @@ export default function Misi() {
         </div>
 
         {/* Kolom kanan: peringkat + misi harian */}
-        <div className="flex flex-col gap-6">
+        <div className="flex min-w-0 flex-col gap-6">
           <Reveal delay={0.15}>
             <div className="relative overflow-hidden rounded-3xl p-5 text-white" style={{ background: "linear-gradient(135deg,#1E3A8A,#2563EB 55%,#38BDF8)", boxShadow: "0 16px 32px -14px rgba(37,99,235,.7), inset 0 1px 0 rgba(255,255,255,.3)" }}>
               <div className="flex items-start gap-3">
-                <div className="flex-1">
+                <div className="min-w-0 flex-1">
                   <p className="font-label-sm text-label-sm text-white/80">Peringkat Kecamatan</p>
-                  <div className="flex items-end gap-2">
-                    <span className="text-5xl font-black leading-none">#5</span>
-                    <span className="mb-1 inline-flex items-center text-xs font-bold text-[#FDE047]">
-                      <span className="material-symbols-outlined text-[16px]">arrow_upward</span> naik 2
+                  <div className="flex flex-wrap items-end gap-x-2">
+                    <span className="text-5xl font-black leading-none">#{me?.rank ?? "-"}</span>
+                    <span className="mb-1 inline-flex items-center whitespace-nowrap text-xs font-bold text-[#FDE047]">
+                      <span className="material-symbols-outlined text-[16px]">{rankDelta > 0 ? "arrow_upward" : rankDelta < 0 ? "arrow_downward" : "remove"}</span> {rankDelta > 0 ? `naik ${rankDelta}` : rankDelta < 0 ? `turun ${-rankDelta}` : "tetap"}
                     </span>
                   </div>
                 </div>
@@ -659,17 +721,17 @@ export default function Misi() {
                 {BOARD.map((b) => (
                   <li
                     key={b.rank}
-                    className={`flex items-center justify-between rounded-xl px-3 py-2 text-sm ${
+                    className={`flex items-center justify-between gap-2 rounded-xl px-3 py-2 text-sm ${
                       b.me ? "font-extrabold text-[#0B2A5B] shadow-[0_0_18px_rgba(253,224,71,.75)] ring-2 ring-white/70" : "bg-white/10"
                     }`}
                     style={b.me ? { background: "linear-gradient(90deg,#FDE047,#F59E0B)" } : undefined}
                   >
-                    <span className="flex items-center gap-2">
-                      <span className="w-5 text-center font-bold">{b.rank}</span>
-                      {b.name}
-                      {b.me && <span className="rounded-full bg-[#0B2A5B] px-1.5 py-0.5 text-[10px] font-bold text-[#FDE047]">Kamu</span>}
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span className="w-5 shrink-0 text-center font-bold">{b.rank}</span>
+                      <span className="wrap-break-words leading-tight">{b.name}</span>
+                      {b.me && <span className="shrink-0 rounded-full bg-[#0B2A5B] px-1.5 py-0.5 text-[10px] font-bold text-[#FDE047]">Kamu</span>}
                     </span>
-                    <span className="tabular-nums">{fmt(b.me ? points : b.pts)} p</span>
+                    <span className="shrink-0 whitespace-nowrap tabular-nums">{fmt(b.me ? points : b.pts)} p</span>
                   </li>
                 ))}
               </ul>
@@ -679,13 +741,16 @@ export default function Misi() {
           <Reveal delay={0.2}>
             <div className="rounded-3xl border border-[#BFD7FF] p-5" style={{ background: "linear-gradient(160deg,#EAF2FF,#DCE9FF)" }}>
               <h2 className="mb-2 flex items-center gap-2 font-headline-sm text-headline-sm text-[#1E3A8A]">
-                <span className="material-symbols-outlined text-[20px]">checklist</span> Misi Harian
+                <span className="material-symbols-outlined shrink-0 text-[20px]">checklist</span> Misi Harian
               </h2>
               <p className="mb-3 flex items-start gap-2 rounded-lg bg-white/70 p-2.5 text-xs text-[#33508F]">
-                <span className="material-symbols-outlined text-[16px]">info</span>
-                Laporan pencegahan dini memberi 2× lebih banyak poin dibanding laporan darurat.
+                <span className="material-symbols-outlined shrink-0 text-[16px]">info</span>
+                <span className="min-w-0 wrap-break-words">Laporan pencegahan dini memberi 2× lebih banyak poin dibanding laporan darurat.</span>
               </p>
               <div className="space-y-2.5">
+                {misi.length === 0 && (
+                  <p className="rounded-xl bg-white/70 p-3 text-center text-xs font-semibold text-[#33508F]">{loadErr ? "Masuk ke akunmu untuk melihat misi." : "Memuat misi…"}</p>
+                )}
                 {misi.map((m) => {
                   const hit = pop?.id === m.id;
                   return (
@@ -693,7 +758,7 @@ export default function Misi() {
                       key={m.id}
                       disabled={m.done}
                       onClick={() => completeMisi(m)}
-                      aria-label={m.done ? `${m.label}, selesai` : `Selesaikan misi ${m.label}`}
+                      aria-label={m.done ? `${m.label}, selesai` : `${m.label}, belum selesai. Tekan untuk melihat syarat`}
                       className={`relative flex w-full items-center justify-between gap-2 overflow-hidden rounded-xl p-3 text-left text-white transition-all duration-300 ${
                         m.done ? "cursor-default" : "hover:-translate-y-0.5 hover:shadow-[0_10px_20px_-8px_rgba(29,78,216,.85)] active:scale-[.98]"
                       } ${hit ? "msPop" : ""}`}
@@ -706,16 +771,16 @@ export default function Misi() {
                           <span key={`p${pop.key}`} className="msPlus absolute right-3 top-1 text-sm font-black text-[#FDE047] [text-shadow:0_1px_3px_rgba(0,0,0,.4)]">+{m.pts}</span>
                         </>
                       )}
-                      <span className="relative flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[22px] drop-shadow" style={m.done ? { fontVariationSettings: "'FILL' 1" } : undefined}>
+                      <span className="relative flex min-w-0 flex-1 items-center gap-2">
+                        <span className="material-symbols-outlined shrink-0 text-[22px] drop-shadow" style={m.done ? { fontVariationSettings: "'FILL' 1" } : undefined}>
                           {m.done ? "check_circle" : "radio_button_unchecked"}
                         </span>
-                        <span>
-                          <span className="block font-label-bold text-label-bold [text-shadow:0_1px_3px_rgba(0,0,0,.3)]">{m.label}</span>
-                          <span className="block text-xs text-white/85 [text-shadow:0_1px_2px_rgba(0,0,0,.3)]">{m.sub}</span>
+                        <span className="min-w-0">
+                          <span className="block wrap-break-words font-label-bold text-label-bold [text-shadow:0_1px_3px_rgba(0,0,0,.3)]">{m.label}</span>
+                          <span className="block wrap-break-words text-xs text-white/85 [text-shadow:0_1px_2px_rgba(0,0,0,.3)]">{hint[m.id] || m.sub}</span>
                         </span>
                       </span>
-                      <span className="relative shrink-0 rounded-full bg-white/25 px-2 py-1 text-xs font-bold">+{m.pts} Poin</span>
+                      <span className="relative shrink-0 whitespace-nowrap rounded-full bg-white/25 px-2 py-1 text-xs font-bold">+{m.pts} Poin</span>
                     </button>
                   );
                 })}
@@ -728,22 +793,22 @@ export default function Misi() {
       {/* Tukar reward */}
       <Reveal delay={0.25}>
         <div className="flex flex-col items-center justify-between gap-4 rounded-3xl p-6 text-white md:flex-row" style={{ background: "linear-gradient(110deg,#F97316 0%,#FB7185 55%,#EC4899 100%)", boxShadow: "0 18px 36px -14px rgba(236,72,153,.65), inset 0 1px 0 rgba(255,255,255,.35)" }}>
-          <div className="text-center md:text-left">
+          <div className="min-w-0 text-center md:text-left">
             <h3 className="font-headline-sm text-headline-sm">Tukar Reward</h3>
             <p className="font-body-md text-body-md text-white/90">Tukarkan poinmu dengan berbagai keuntungan menarik.</p>
           </div>
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="flex max-w-full flex-wrap justify-center gap-3">
             <button
               onClick={() => openReward("token")}
-              className={`flex items-center gap-2 rounded-full bg-white px-4 py-2.5 font-label-bold text-label-bold text-[#C2410C] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_26px_rgba(253,224,71,.9)] active:scale-95 ${glowBtn === "token" ? "msGlowBtn" : ""}`}
+              className={`flex max-w-full items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 text-center font-label-bold text-label-bold text-[#C2410C] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_26px_rgba(253,224,71,.9)] active:scale-95 ${glowBtn === "token" ? "msGlowBtn" : ""}`}
             >
-              <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span> Voucher Token Listrik
+              <span className="material-symbols-outlined shrink-0 text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span> Voucher Token Listrik
             </button>
             <button
               onClick={() => openReward("donasi")}
-              className={`flex items-center gap-2 rounded-full bg-white/20 px-4 py-2.5 font-label-bold text-label-bold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-white/30 hover:shadow-[0_0_26px_rgba(253,224,71,.9)] active:scale-95 ${glowBtn === "donasi" ? "msGlowBtn" : ""}`}
+              className={`flex max-w-full items-center justify-center gap-2 rounded-full bg-white/20 px-4 py-2.5 text-center font-label-bold text-label-bold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-white/30 hover:shadow-[0_0_26px_rgba(253,224,71,.9)] active:scale-95 ${glowBtn === "donasi" ? "msGlowBtn" : ""}`}
             >
-              <span className="material-symbols-outlined text-[18px]">volunteer_activism</span> Donasi Lingkungan
+              <span className="material-symbols-outlined shrink-0 text-[18px]">volunteer_activism</span> Donasi Lingkungan
             </button>
           </div>
         </div>
@@ -755,14 +820,14 @@ export default function Misi() {
           <p className="mb-1 flex items-center justify-center gap-1 text-xs font-bold text-[#C2410C]">
             <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span> Pantun Penjaga Grid
           </p>
-          <p key={pi} className="whitespace-pre-line text-sm italic leading-relaxed text-[#7C2D12]" style={{ animation: "msPantun .6s ease-out both" }}>
+          <p key={pi} className="whitespace-pre-line wrap-break-words text-sm italic leading-relaxed text-[#7C2D12]" style={{ animation: "msPantun .6s ease-out both" }}>
             {PANTUN[pi]}
           </p>
         </div>
       </Reveal>
 
-      {medal && <MedalModal m={medal} onClose={() => setMedal(null)} />}
-      {reward && <RewardModal kind={reward} points={points} onRedeem={(c) => setPoints((p) => p - c)} onClose={() => setReward(null)} />}
+      {medal && <MedalModal m={medals.find((x) => x.file === medal.file) || medal} points={points} onClose={() => setMedal(null)} />}
+      {reward && <RewardModal kind={reward} rewards={me?.rewards} points={balance} onRedeem={redeem} onClose={() => setReward(null)} />}
     </div>
   );
 }
