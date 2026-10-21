@@ -18,6 +18,12 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { supabase } from "@/lib/supabase";
 import { api } from "@/lib/api";
+import {
+  defectLabel,
+  needsReview,
+  severityColor,
+  sortBySeverity,
+} from "@/lib/ai-defects";
 
 const LOAD_DURATION_MS = 2000;
 const QUOTES = [
@@ -25,16 +31,67 @@ const QUOTES = [
   "Please wait, sebentar lagi siap digunakan...",
   "Hampir selesai, kamera akan segera terbuka...",
 ];
-const DEFECT = { isolator_pecah: "Isolator pecah", korosi: "Korosi", kabel_bermasalah: "Kabel bermasalah", komponen_hilang: "Komponen hilang" };
 
-// Saran mandiri untuk pelapor, per jenis kerusakan.
+// Saran mandiri untuk pelapor, per jenis kerusakan (model yolov8s-grid7-v1.0).
+// 'korosi' & 'komponen_hilang' sudah dihapus; kini mengikuti 6 kelas resmi.
 const ADVICE = {
-  isolator_pecah: "Jauhi tiang dan jangan berteduh di bawahnya, terutama saat hujan — isolator rusak bisa memicu kebocoran arus.",
-  korosi: "Jangan menyentuh bagian yang berkarat. Jauhkan anak-anak dari tiang, dan hindari memasang apa pun di tiang tersebut.",
-  kabel_bermasalah: "Jaga jarak minimal 5 meter dari kabel yang kendur atau menjuntai. Jangan menyentuhnya. Jika kabel menyentuh tanah/pohon, segera hubungi PLN 123.",
-  komponen_hilang: "Jauhi area — komponen yang hilang bisa membuat bagian bertegangan terbuka. Jangan memanjat atau mengganggu tiang.",
+  benda_asing:
+    "Jangan menarik atau melempar apa pun untuk melepas benda yang tersangkut di kabel (mis. layang-layang). Jaga jarak dan laporkan ke PLN 123.",
+  isolator_pecah:
+    "Jauhi tiang dan jangan berteduh di bawahnya, terutama saat hujan — isolator rusak bisa memicu kebocoran arus.",
+  kabel_bermasalah:
+    "Jaga jarak minimal 5 meter dari kabel yang kendur atau menjuntai. Jangan menyentuhnya. Jika kabel menyentuh tanah/pohon, segera hubungi PLN 123.",
+  percikan_api:
+    "Percikan atau busur api sangat berbahaya. Jauhi area minimal 10 meter, jangan mendekat atau merekam dari dekat, dan segera hubungi PLN 123.",
+  pohon_miring_tumbang:
+    "Jangan mencoba memotong atau menyingkirkan pohon yang menimpa/condong ke jaringan sendiri. Jaga jarak dan laporkan ke PLN 123.",
+  tiang_tumbang:
+    "Jauhi radius jatuh tiang dan kabel di sekitarnya — kabel yang jatuh bisa tetap bertegangan. Segera hubungi PLN 123.",
 };
-const GENERAL_ADVICE = "Saat hujan atau banjir, jauhi tiang dan kabel listrik. Jika melihat percikan, asap, bau gosong, atau kabel putus, segera hubungi PLN 123.";
+const GENERAL_ADVICE =
+  "Saat hujan atau banjir, jauhi tiang dan kabel listrik. Jika melihat percikan, asap, bau gosong, atau kabel putus, segera hubungi PLN 123.";
+
+// Overlay kotak deteksi AI di atas foto.
+// bbox YOLO ternormalisasi (x,y titik tengah; w,h lebar/tinggi; 0–1) -> persentase,
+// sehingga kotak tetap presisi di ukuran tampilan berapa pun tanpa mengukur piksel.
+function DetectionImage({ src, dets }) {
+  return (
+    <div className="relative inline-block w-full overflow-hidden rounded-xl bg-surface-container">
+      <img src={src} alt="Foto laporan dengan hasil deteksi AI" className="block w-full" />
+      {dets.map((d, i) => {
+        const b = d.bbox;
+        if (!b || typeof b.x !== "number") return null;
+        const color = severityColor(d.severity);
+        const left = Math.max(0, (b.x - b.w / 2) * 100);
+        const top = Math.max(0, (b.y - b.h / 2) * 100);
+        const width = b.w * 100;
+        const height = b.h * 100;
+        return (
+          <div
+            key={i}
+            className="pointer-events-none absolute"
+            style={{
+              left: `${left}%`,
+              top: `${top}%`,
+              width: `${width}%`,
+              height: `${height}%`,
+              border: `2px solid ${color}`,
+              boxShadow: "0 0 0 1px #00000040",
+            }}
+          >
+            <span
+              className="absolute left-0 top-0 max-w-full truncate rounded-br px-1.5 py-0.5 text-[10px] font-bold leading-tight text-white"
+              style={{ backgroundColor: color }}
+            >
+              {defectLabel(d.defect)}
+              {typeof d.confidence === "number" ? ` ${Math.round(d.confidence * 100)}%` : ""}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function Lapor() {
   const router = useRouter();
@@ -271,7 +328,9 @@ export default function Lapor() {
     };
   }, [showLoader, showCamera]);
 
-  const dets = sent?.scan?.detections || [];
+  // Status AI: 'done' | 'ai_unavailable'. Bila scan gagal total -> anggap 'ai_unavailable'.
+  const aiStatus = sent?.scan?.ai_status || (sent?.scan ? "done" : "ai_unavailable");
+  const dets = sortBySeverity(sent?.scan?.detections || []);
   const adviceList = [...new Set(dets.map((d) => d.defect))].map((d) => ADVICE[d]).filter(Boolean);
   adviceList.push(GENERAL_ADVICE);
 
@@ -394,29 +453,53 @@ export default function Lapor() {
             {sent ? (
               /* === SUKSES === */
               <div className="space-y-4">
-                {preview && (
-                  <div className="overflow-hidden rounded-xl bg-surface-container">
-                    <img src={preview} alt="Foto laporan" className="max-h-110 w-full object-contain" />
-                  </div>
-                )}
+                {preview &&
+                  (dets.length > 0 ? (
+                    <DetectionImage src={preview} dets={dets} />
+                  ) : (
+                    <div className="overflow-hidden rounded-xl bg-surface-container">
+                      <img src={preview} alt="Foto laporan" className="max-h-110 w-full object-contain" />
+                    </div>
+                  ))}
                 <div className="rounded-xl bg-[#FFFFFFCC] p-5 text-center">
                   <FontAwesomeIcon icon={faCheckCircle} className="h-10 w-10 text-risk-aman" />
                   <h3 className="mt-2 font-headline-sm text-headline-sm text-on-surface">Laporan Terkirim!</h3>
                   <p className="mt-1 font-body-md text-body-md text-on-surface-variant">
                     Terima kasih. Laporanmu tersimpan (ID #{String(sent.report?.id || "").slice(0, 8)}) dan akan diverifikasi petugas.
                   </p>
-                  {sent.scan ? (
+
+                  {aiStatus === "done" ? (
                     dets.length > 0 ? (
-                      <div className="mt-3 inline-flex flex-wrap items-center justify-center gap-2">
-                        <span className="font-label-sm text-label-sm text-on-surface-variant">Indikasi awal AI:</span>
-                        {dets.slice(0, 4).map((d, i) => (
-                          <span key={i} className="rounded-full bg-risk-waspada/15 px-2.5 py-1 text-[11px] font-bold text-risk-waspada">{DEFECT[d.defect] || d.defect}</span>
-                        ))}
+                      <div className="mt-4 text-left">
+                        <p className="font-label-sm text-label-sm text-on-surface-variant">
+                          Indikasi awal AI (bukan keputusan akhir, keputusan tetap di petugas):
+                        </p>
+                        <ul className="mt-2 space-y-2">
+                          {dets.map((d, i) => (
+                            <li key={i} className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                              <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: severityColor(d.severity) }} />
+                              <span className="font-label-bold text-label-bold text-on-surface">{defectLabel(d.defect)}</span>
+                              {typeof d.confidence === "number" && (
+                                <span className="font-label-sm text-label-sm text-on-surface-variant">{Math.round(d.confidence * 100)}%</span>
+                              )}
+                              {needsReview(d.defect) && (
+                                <span className="rounded-full bg-risk-waspada/15 px-2 py-0.5 text-[10px] font-bold text-risk-waspada">Perlu verifikasi petugas</span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
                       </div>
                     ) : (
-                      <p className="mt-3 font-label-sm text-label-sm text-on-surface-variant">AI belum menemukan indikasi jelas — tetap akan dicek petugas. (Tidak ada deteksi ≠ aman.)</p>
+                      <p className="mt-3 font-label-sm text-label-sm text-on-surface-variant">
+                        AI tidak menemukan indikasi kerusakan pada foto ini.{" "}
+                        <span className="font-bold">Tidak terdeteksi bukan berarti aset aman</span> — laporan tetap diverifikasi petugas.
+                      </p>
                     )
-                  ) : null}
+                  ) : (
+                    <p className="mt-3 font-label-sm text-label-sm text-on-surface-variant">
+                      Analisis AI belum tersedia saat ini. Laporan tetap tersimpan dan akan diverifikasi petugas secara manual.
+                    </p>
+                  )}
                 </div>
                 {/* Saran mandiri untuk pelapor */}
                 <div className="rounded-xl border border-[#FBBF24] bg-[#FEF9C3] p-4 text-left">
