@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { api } from "@/lib/api";
 import { isStaff } from "@/lib/roles";
@@ -14,6 +14,12 @@ const links = [
   { href: "/misi", label: "Misi" },
   { href: "/tentang", label: "Tentang" },
 ];
+
+function isActive(pathname, href) {
+  const p = (pathname || "/").replace(/\/+$/, "") || "/";
+  if (href === "/") return p === "/";
+  return p === href || p.startsWith(href + "/");
+}
 
 function LogoMark() {
   return <Image src="/grid-logos.png" alt="" width={30} height={42} priority />;
@@ -138,7 +144,7 @@ function UserPill({ me, onLogout, busy, full = false }) {
           </span>
         </button>
         {open && (
-          <div className="absolute right-0 top-[calc(100%+8px)] z-[700] w-56 overflow-hidden rounded-2xl border border-outline-variant bg-card-surface py-1 shadow-lg">
+          <div className="absolute right-0 top-[calc(100%+8px)] z-700 w-56 overflow-hidden rounded-2xl border border-outline-variant bg-card-surface py-1 shadow-lg">
             <MenuLink href="/dashboard" icon="dashboard" label="Dashboard" onClick={() => setOpen(false)} />
             <MenuLink href="/profil" icon="account_circle" label="Profil Saya" onClick={() => setOpen(false)} />
           </div>
@@ -191,19 +197,78 @@ function AuthArea({ full = false }) {
   }
 
   // Hindari kedip "Login" sebelum status auth diketahui
-  if (!ready) return <div className={full ? "h-12 w-full" : "h-12 w-[260px]"} aria-hidden />;
+  if (!ready) return <div className={full ? "h-12 w-full" : "h-12 w-65"} aria-hidden />;
   if (!me) return <GuestPill full={full} />;
   return <UserPill me={me} onLogout={logout} busy={busy} full={full} />;
+}
+
+/* Link desktop dengan pill yang meluncur ke menu aktif */
+function DesktopLinks({ pathname }) {
+  const wrapRef = useRef(null);
+  const itemRefs = useRef({});
+  const [pill, setPill] = useState({ left: 0, width: 0, show: false });
+  const activeHref = links.find((l) => isActive(pathname, l.href))?.href;
+
+  function measure() {
+    const el = itemRefs.current[activeHref];
+    const wrap = wrapRef.current;
+    if (!el || !wrap) {
+      setPill((p) => ({ ...p, show: false }));
+      return;
+    }
+    setPill({ left: el.offsetLeft, width: el.offsetWidth, show: true });
+  }
+
+  useLayoutEffect(() => {
+    measure();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeHref]);
+
+  useEffect(() => {
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeHref]);
+
+  return (
+    <div ref={wrapRef} className="relative flex items-center gap-1">
+      <span
+        aria-hidden
+        className="absolute top-0 h-full rounded-full bg-[#FCE6BD] transition-[left,width,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+        style={{ left: pill.left, width: pill.width, opacity: pill.show ? 1 : 0 }}
+      />
+      {links.map((l) => {
+        const active = isActive(pathname, l.href);
+        return (
+          <Link
+            key={l.href}
+            href={l.href}
+            ref={(el) => (itemRefs.current[l.href] = el)}
+            className={`relative z-10 rounded-full px-4 py-2 font-heading text-[16px] font-bold text-brand transition-colors duration-300 ${
+              active ? "" : "hover:bg-surface-container-low"
+            }`}
+          >
+            {l.label}
+          </Link>
+        );
+      })}
+    </div>
+  );
 }
 
 export function SiteNav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
+  // Tutup menu mobile otomatis tiap pindah halaman
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
   return (
-    <header className="sticky top-0 z-[600] w-full border-b border-outline-variant/40 bg-card-surface/95 backdrop-blur">
-      <nav className="mx-auto flex h-20 max-w-[1200px] items-center justify-between gap-4 px-gutter">
-        <Link href="/" className="flex shrink-0 items-center gap-2" onClick={() => setOpen(false)}>
+    <header className="sticky top-0 z-600 w-full border-b border-outline-variant/40 bg-card-surface/95 backdrop-blur">
+      <nav className="mx-auto flex h-20 max-w-300 items-center justify-between gap-4 px-gutter">
+        <Link href="/" className="flex shrink-0 items-center gap-2">
           <LogoMark />
           <span className="font-heading text-xl font-extrabold tracking-tight text-brand sm:text-2xl">
             GRID<span className="text-accent">·</span>ID
@@ -211,21 +276,8 @@ export function SiteNav() {
         </Link>
 
         {/* Center links — desktop */}
-        <div className="hidden flex-1 items-center justify-center gap-1 lg:flex">
-          {links.map((l) => {
-            const active = pathname === l.href;
-            return (
-              <Link
-                key={l.href}
-                href={l.href}
-                className={`rounded-full px-4 py-2 font-heading text-[16px] font-bold transition-colors ${
-                  active ? "bg-[#FCE6BD] text-brand" : "text-brand hover:bg-surface-container-low"
-                }`}
-              >
-                {l.label}
-              </Link>
-            );
-          })}
+        <div className="hidden flex-1 items-center justify-center lg:flex">
+          <DesktopLinks pathname={pathname} />
         </div>
 
         {/* Auth area — desktop */}
@@ -237,37 +289,49 @@ export function SiteNav() {
         <button
           onClick={() => setOpen((v) => !v)}
           aria-label="Buka menu"
-          className="grid h-11 w-11 place-items-center rounded-full text-brand hover:bg-surface-container-low lg:hidden"
+          aria-expanded={open}
+          className="grid h-11 w-11 place-items-center rounded-full text-brand transition active:scale-90 hover:bg-surface-container-low lg:hidden"
         >
           <span className="material-symbols-outlined text-[28px]">{open ? "close" : "menu"}</span>
         </button>
       </nav>
 
-      {/* Mobile menu */}
-      {open && (
-        <div className="border-t border-outline-variant/40 bg-card-surface px-gutter py-4 lg:hidden">
-          <div className="flex flex-col gap-1">
-            {links.map((l) => {
-              const active = pathname === l.href;
-              return (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  onClick={() => setOpen(false)}
-                  className={`rounded-xl px-4 py-3 font-heading text-[16px] font-bold transition-colors ${
-                    active ? "bg-[#FCE6BD] text-brand" : "text-brand hover:bg-surface-container-low"
-                  }`}
-                >
-                  {l.label}
-                </Link>
-              );
-            })}
-          </div>
-          <div className="mt-4" onClick={() => setOpen(false)}>
-            <AuthArea full />
+      {/* Mobile menu — buka/tutup halus */}
+      <div
+        className={`grid transition-[grid-template-rows] duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] lg:hidden ${
+          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <div
+            className={`border-t border-outline-variant/40 bg-card-surface px-gutter py-4 transition-opacity duration-300 ${
+              open ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            <div className="flex flex-col gap-1">
+              {links.map((l, i) => {
+                const active = isActive(pathname, l.href);
+                return (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    tabIndex={open ? 0 : -1}
+                    style={{ transitionDelay: open ? `${i * 40}ms` : "0ms" }}
+                    className={`rounded-xl px-4 py-3 font-heading text-[16px] font-bold text-brand transition-all duration-300 ${
+                      open ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0"
+                    } ${active ? "bg-[#FCE6BD]" : "hover:bg-surface-container-low"}`}
+                  >
+                    {l.label}
+                  </Link>
+                );
+              })}
+            </div>
+            <div className="mt-4">
+              <AuthArea full />
+            </div>
           </div>
         </div>
-      )}
+      </div>
     </header>
   );
 }

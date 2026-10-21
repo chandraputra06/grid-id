@@ -8,7 +8,7 @@ const cols = [
 export function SiteFooter() {
   return (
     <footer className="w-full bg-footer text-white/85">
-      <div className="mx-auto grid max-w-[1200px] grid-cols-1 gap-10 px-gutter py-14 md:grid-cols-12">
+      <div className="mx-auto grid max-w-300 grid-cols-1 gap-10 px-gutter py-14 md:grid-cols-12">
         <div className="md:col-span-4">
           <div className="flex items-center gap-2.5">
             <Image src="/grid-logos.png" alt="" width={28} height={39} />
@@ -46,7 +46,7 @@ export function SiteFooter() {
           </ul>
         </div>
       </div>
-      <div className="border-t border-white/10 py-5 text-center font-label-sm text-label-sm text-white/45 bg-gradient-to-r from-[#030c32] to-[#00217b]
+      <div className="border-t border-white/10 py-5 text-center font-label-sm text-label-sm text-white/45 bg-linear-to-r from-[#030c32] to-[#00217b]
 ">
         © {new Date().getFullYear()} GRID·ID. All rights reserved. Sumber data cuaca: BMKG.
       </div>

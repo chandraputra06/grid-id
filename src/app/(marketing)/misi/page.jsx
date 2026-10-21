@@ -60,7 +60,7 @@ const fmt = (n) => Math.round(n).toLocaleString("id-ID");
 const rnd = () => Math.random().toString(36).slice(2, 6).toUpperCase();
 
 // "medali1.png" -> "Medali 1"
-const medalName = (m) => m.file.replace(/\.[^.]+$/, "").replace(/^medali(\d+)/i, "Medali $1");
+const medalName = (m) => m.file.replace(/\.[^.]+$/, "").replace(/^medali(\d+)/i, "Level $1");
 
 // Bentuk data user dari akun Supabase yang sedang login
 function buildUser(u) {
