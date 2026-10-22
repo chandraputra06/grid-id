@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
+import { supabase } from "@/lib/supabase";
 
 const PRIO = {
   3: { label: "Mendesak", cls: "bg-risk-kritis text-white" },
@@ -21,9 +22,203 @@ const FILTERS = [
   { key: "selesai", label: "Selesai" },
 ];
 
+// Form inspeksi lapangan: jenis aset & kondisi fisik mengikuti contoh formulir.
+const JENIS_ASET = ["Trafo distribusi", "Tiang dan kabel", "Isolator", "Panel listrik"];
+// Kondisi fisik -> diagnosis_level (enum risk_level).
+const KONDISI = [
+  { v: "aman", label: "Normal" },
+  { v: "waspada", label: "Perlu pemantauan" },
+  { v: "kritis", label: "Perlu pemeriksaan lanjutan" },
+];
+
 function coords(a) {
   if (!a || a.lat == null || a.lng == null) return null;
   return `${Number(a.lat).toFixed(4)}, ${Number(a.lng).toFixed(4)}`;
+}
+
+function num(v) {
+  return v !== "" && v != null && !Number.isNaN(Number(v)) ? Number(v) : null;
+}
+
+// Form inspeksi lapangan + upload foto RGB. Tersimpan ke /api/inspections untuk dicek supervisor.
+function InspectionForm({ assignment, onCancel, onDone }) {
+  const asset = assignment.asset || {};
+  const [deviceType, setDeviceType] = useState(JENIS_ASET.includes(asset.asset_type) ? asset.asset_type : JENIS_ASET[0]);
+  const [tempAset, setTempAset] = useState("");
+  const [suhu, setSuhu] = useState("");
+  const [arus, setArus] = useState("");
+  const [beban, setBeban] = useState("");
+  const [kondisi, setKondisi] = useState("aman");
+  const [catatan, setCatatan] = useState("");
+  const [files, setFiles] = useState([]); // { file, preview }
+  const [lat, setLat] = useState(asset.lat ?? null);
+  const [lng, setLng] = useState(asset.lng ?? null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  // Lokasi lapangan (best-effort) — menimpa koordinat aset bila tersedia.
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLat(pos.coords.latitude);
+        setLng(pos.coords.longitude);
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  }, []);
+
+  useEffect(() => () => files.forEach((f) => URL.revokeObjectURL(f.preview)), [files]);
+
+  function addFiles(e) {
+    const picked = Array.from(e.target.files || []);
+    e.target.value = "";
+    if (picked.length) setFiles((prev) => [...prev, ...picked.map((f) => ({ file: f, preview: URL.createObjectURL(f) }))]);
+  }
+  function removeFile(i) {
+    setFiles((prev) => {
+      const next = [...prev];
+      const [rm] = next.splice(i, 1);
+      if (rm) URL.revokeObjectURL(rm.preview);
+      return next;
+    });
+  }
+
+  async function uploadOne(file) {
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+    const sign = await api.post("/api/uploads/sign", { ext });
+    const up = await supabase.storage.from(sign.bucket).uploadToSignedUrl(sign.path, sign.token, file);
+    if (up.error) throw new Error(up.error.message);
+    return sign.public_url;
+  }
+
+  async function submit() {
+    if (busy) return;
+    setErr("");
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      setErr("Sesi berakhir. Silakan masuk kembali.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const photos = [];
+      for (const f of files) photos.push(await uploadOne(f.file));
+
+      await api.post("/api/inspections", {
+        asset_id: assignment.asset_id || asset.id || null,
+        device_type: deviceType || null,
+        lat,
+        lng,
+        diagnosis_level: kondisi,
+        diagnosis_text: catatan || null,
+        readings: {
+          temp_aset: num(tempAset),
+          suhu_lingkungan: num(suhu),
+          arus: num(arus),
+          beban_trafo: num(beban),
+        },
+        photos: photos.length ? photos : null,
+      });
+      onDone();
+    } catch (e) {
+      setErr(e?.message || "Gagal menyimpan inspeksi. Coba lagi.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mt-4 space-y-3 rounded-xl border border-outline-variant bg-surface-container-low p-4">
+      <p className="font-heading text-sm font-bold text-on-surface">Formulir Inspeksi Aset</p>
+
+      <Field label="Jenis aset">
+        <div className="flex flex-wrap gap-2">
+          {JENIS_ASET.map((j) => (
+            <button
+              key={j}
+              type="button"
+              onClick={() => setDeviceType(j)}
+              className={`rounded-full px-3 py-1.5 text-[13px] font-bold transition ${deviceType === j ? "bg-brand text-white" : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"}`}
+            >
+              {j}
+            </button>
+          ))}
+        </div>
+      </Field>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <Field label="Temperatur aset (°C)">
+          <input className="fld-t" type="number" inputMode="decimal" value={tempAset} onChange={(e) => setTempAset(e.target.value)} placeholder="mis. 58" />
+        </Field>
+        <Field label="Suhu lingkungan (°C)">
+          <input className="fld-t" type="number" inputMode="decimal" value={suhu} onChange={(e) => setSuhu(e.target.value)} placeholder="mis. 30" />
+        </Field>
+        <Field label="Arus (A)">
+          <input className="fld-t" type="number" inputMode="decimal" value={arus} onChange={(e) => setArus(e.target.value)} placeholder="mis. 80" />
+        </Field>
+        <Field label="Beban trafo (%)">
+          <input className="fld-t" type="number" inputMode="decimal" value={beban} onChange={(e) => setBeban(e.target.value)} placeholder="mis. 75" />
+        </Field>
+      </div>
+
+      <Field label="Kondisi fisik">
+        <div className="flex flex-wrap gap-2">
+          {KONDISI.map((k) => (
+            <button
+              key={k.v}
+              type="button"
+              onClick={() => setKondisi(k.v)}
+              className={`rounded-full px-3 py-1.5 text-[13px] font-bold transition ${kondisi === k.v ? "bg-brand text-white" : "bg-surface-container text-on-surface-variant hover:bg-surface-container-high"}`}
+            >
+              {k.label}
+            </button>
+          ))}
+        </div>
+      </Field>
+
+      <Field label="Catatan petugas">
+        <textarea className="fld-t" rows={2} value={catatan} onChange={(e) => setCatatan(e.target.value)} placeholder="Contoh: terdapat korosi pada sambungan..." />
+      </Field>
+
+      {/* Foto RGB lapangan */}
+      <div>
+        <span className="mb-1 block font-label-sm text-label-sm text-on-surface-variant">Foto RGB lapangan</span>
+        <div className="flex flex-wrap gap-2">
+          {files.map((f, i) => (
+            <div key={i} className="relative h-20 w-20 overflow-hidden rounded-lg border border-outline-variant">
+              <img src={f.preview} alt="" className="h-full w-full object-cover" />
+              <button type="button" onClick={() => removeFile(i)} aria-label="Hapus foto" className="absolute right-0 top-0 grid h-5 w-5 place-items-center rounded-bl bg-black/60 text-[12px] text-white">×</button>
+            </div>
+          ))}
+          <label className="grid h-20 w-20 cursor-pointer place-items-center rounded-lg border border-dashed border-outline-variant text-on-surface-variant hover:bg-surface-container">
+            <span className="material-symbols-outlined">add_a_photo</span>
+            <input type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={addFiles} />
+          </label>
+        </div>
+      </div>
+
+      <p className="font-body-md text-[12px] text-on-surface-variant">
+        {lat != null && lng != null ? `Lokasi terlampir: ${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)}` : "Lokasi belum terlampir (izinkan akses lokasi di lapangan)."}
+      </p>
+
+      {err && <p className="rounded-lg bg-risk-kritis/10 px-3 py-2 text-[13px] font-semibold text-risk-kritis">{err}</p>}
+
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={submit}
+          disabled={busy}
+          className="flex items-center gap-1.5 rounded-full bg-brand px-5 py-2 font-label-bold text-label-bold text-white transition hover:brightness-110 disabled:opacity-60"
+        >
+          <span className="material-symbols-outlined text-[18px]">{busy ? "hourglass_top" : "save"}</span> {busy ? "Menyimpan…" : "Simpan Inspeksi"}
+        </button>
+        <button onClick={onCancel} disabled={busy} className="rounded-full border border-outline-variant px-4 py-2 font-label-bold text-label-bold text-on-surface-variant hover:bg-surface-container">
+          Batal
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export default function Tugas() {
@@ -33,6 +228,7 @@ export default function Tugas() {
   const [filter, setFilter] = useState("all");
   const [busyId, setBusyId] = useState(null);
   const [reportId, setReportId] = useState(null);
+  const [inspId, setInspId] = useState(null);
   const [rf, setRf] = useState({ tools_used: "", prior_repair_count: "", problem_found: "", actions_done: "" });
 
   async function load() {
@@ -85,11 +281,20 @@ export default function Tugas() {
     });
   }
 
+  function openInspection(id) {
+    setReportId(null);
+    setInspId(id);
+  }
+  function openReport(id) {
+    setInspId(null);
+    setReportId(id);
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="font-heading text-2xl font-extrabold text-on-surface">Tugas Saya</h1>
-        <p className="font-body-md text-body-md text-on-surface-variant">Penugasan dari supervisor. Terima, kerjakan, lalu lapor hasilnya.</p>
+        <p className="font-body-md text-body-md text-on-surface-variant">Penugasan dari supervisor. Terima, inspeksi di lapangan, lalu lapor hasilnya.</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -127,6 +332,8 @@ export default function Tugas() {
             const asset = a.asset || {};
             const c = coords(asset);
             const openR = reportId === a.id;
+            const openI = inspId === a.id;
+            const inField = a.status === "diterima" || a.status === "dikerjakan";
             return (
               <div key={a.id} className="rounded-2xl border border-outline-variant bg-card-surface p-5 shadow-sm">
                 <div className="flex flex-wrap items-center gap-2">
@@ -162,13 +369,31 @@ export default function Tugas() {
                       <span className="material-symbols-outlined text-[18px]">play_arrow</span> Mulai Kerjakan
                     </button>
                   )}
+                  {inField && !openI && (
+                    <button onClick={() => openInspection(a.id)} disabled={busy}
+                      className="flex items-center gap-1.5 rounded-full border border-brand px-4 py-2 font-label-bold text-label-bold text-brand transition hover:bg-brand/5 disabled:opacity-60">
+                      <span className="material-symbols-outlined text-[18px]">camera</span> Inspeksi Lapangan
+                    </button>
+                  )}
                   {a.status === "dikerjakan" && !openR && (
-                    <button onClick={() => setReportId(a.id)} disabled={busy}
+                    <button onClick={() => openReport(a.id)} disabled={busy}
                       className="flex items-center gap-1.5 rounded-full bg-risk-aman px-4 py-2 font-label-bold text-label-bold text-white transition hover:brightness-110 disabled:opacity-60">
                       <span className="material-symbols-outlined text-[18px]">done_all</span> Lapor Penyelesaian
                     </button>
                   )}
                 </div>
+
+                {/* Form inspeksi lapangan + upload foto RGB */}
+                {openI && (
+                  <InspectionForm
+                    assignment={a}
+                    onCancel={() => setInspId(null)}
+                    onDone={() => {
+                      setInspId(null);
+                      load();
+                    }}
+                  />
+                )}
 
                 {/* Form lapor penyelesaian */}
                 {openR && (
