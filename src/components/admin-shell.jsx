@@ -29,6 +29,7 @@ const NAV = [
     label: "Supervisi",
     items: [
       { icon: "fact_check", label: "Verifikasi", href: "/dashboard/verifikasi", roles: ["admin", "supervisor"] },
+      { icon: "checklist", label: "Inspeksi Lapangan", href: "/dashboard/inspeksi", roles: ["admin", "supervisor"] },
     ],
   },
   {
