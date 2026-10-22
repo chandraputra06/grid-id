@@ -5,48 +5,65 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { api } from "@/lib/api";
 
-const groups = [
+// Navigasi berbasis role. Tiap item mencantumkan role yang boleh melihatnya;
+// grup yang seluruh itemnya tersaring otomatis disembunyikan.
+// Role: admin | supervisor | petugas | hardware
+const NAV = [
   {
     label: "Operasional",
     items: [
-      { icon: "dashboard", label: "Beranda", href: "/dashboard" },
-      { icon: "monitoring", label: "Monitoring", href: "/dashboard/monitoring" },
-      { icon: "sort", label: "Prioritas Aset", href: "/dashboard/prioritas" },
-      { icon: "description", label: "Laporan", href: "/dashboard/laporan" },
-      { icon: "analytics", label: "Analisis", href: "/dashboard/analisis" },
+      { icon: "dashboard", label: "Beranda", href: "/dashboard", roles: ["admin", "supervisor", "petugas", "hardware"] },
+      { icon: "monitoring", label: "Monitoring", href: "/dashboard/monitoring", roles: ["admin", "supervisor", "petugas"] },
+      { icon: "sort", label: "Prioritas Aset", href: "/dashboard/prioritas", roles: ["admin", "supervisor"] },
+      { icon: "description", label: "Laporan", href: "/dashboard/laporan", roles: ["admin", "supervisor"] },
+      { icon: "analytics", label: "Analisis", href: "/dashboard/analisis", roles: ["admin", "supervisor"] },
+    ],
+  },
+  {
+    label: "Lapangan",
+    items: [
+      { icon: "assignment", label: "Tugas Saya", href: "/dashboard/tugas", roles: ["admin", "petugas"] },
+    ],
+  },
+  {
+    label: "Supervisi",
+    items: [
+      { icon: "fact_check", label: "Verifikasi", href: "/dashboard/verifikasi", roles: ["admin", "supervisor"] },
     ],
   },
   {
     label: "Ekosistem",
     items: [
-      { icon: "hub", label: "Pemetaan Grid", href: "/dashboard/pemetaan" },
-      { icon: "redeem", label: "Program Reward", href: "/dashboard/reward" },
-      { icon: "groups", label: "Panel Mitra", href: "/dashboard/mitra" },
-      { icon: "settings", label: "Pengaturan", href: "/dashboard/pengaturan" },
+      { icon: "hub", label: "Pemetaan Grid", href: "/dashboard/pemetaan", roles: ["admin", "supervisor"] },
+      { icon: "redeem", label: "Program Reward", href: "/dashboard/reward", roles: ["admin", "supervisor"] },
+      { icon: "groups", label: "Panel Mitra", href: "/dashboard/mitra", roles: ["admin", "supervisor"] },
+    ],
+  },
+  {
+    label: "Perangkat",
+    items: [
+      { icon: "sensors", label: "Perangkat IoT", href: "/dashboard/perangkat", roles: ["admin", "hardware"] },
+    ],
+  },
+  {
+    label: "Administrasi",
+    items: [
+      // admin & supervisor memakai href yang sama; hanya satu yang tampil karena role tunggal.
+      { icon: "manage_accounts", label: "Manajemen User", href: "/dashboard/pengguna", roles: ["admin"] },
+      { icon: "manage_accounts", label: "Manajemen Petugas", href: "/dashboard/pengguna", roles: ["supervisor"] },
+      { icon: "settings", label: "Pengaturan", href: "/dashboard/pengaturan", roles: ["admin", "supervisor"] },
     ],
   },
 ];
 
-// Menu khusus hardware (tim alat)
-const hardwareGroup = {
-  label: "Perangkat",
-  items: [{ icon: "sensors", label: "Perangkat IoT", href: "/dashboard/perangkat" }],
-};
-// Menu khusus petugas (lapangan)
-const petugasGroup = {
-  label: "Lapangan",
-  items: [{ icon: "assignment", label: "Tugas Saya", href: "/dashboard/tugas" }],
-};
-// Menu khusus supervisor/admin
-const superGroup = {
-  label: "Supervisi",
-  items: [{ icon: "fact_check", label: "Verifikasi", href: "/dashboard/verifikasi" }],
-};
-// Menu khusus admin
-const adminGroup = {
-  label: "Administrasi",
-  items: [{ icon: "manage_accounts", label: "Manajemen User", href: "/dashboard/pengguna" }],
-};
+// Bangun daftar grup nav sesuai role aktif; grup tanpa item disembunyikan.
+function navForRole(role) {
+  if (!role) return [];
+  return NAV.map((g) => ({
+    label: g.label,
+    items: g.items.filter((it) => it.roles.includes(role)),
+  })).filter((g) => g.items.length > 0);
+}
 
 function initials(name, email) {
   const src = (name || "").trim() || (email || "").trim();
@@ -145,13 +162,8 @@ export function AdminShell({ children }) {
     }
   }
 
-  const navGroups = [...groups];
-  if (me?.role === "petugas" || me?.role === "admin") navGroups.push(petugasGroup);
-  if (me?.role === "supervisor" || me?.role === "admin") navGroups.push(superGroup);
-  if (me?.role === "supervisor")
-    navGroups.push({ label: "Pengelolaan", items: [{ icon: "manage_accounts", label: "Manajemen Petugas", href: "/dashboard/pengguna" }] });
-  if (me?.role === "hardware" || me?.role === "admin") navGroups.push(hardwareGroup);
-  if (me?.role === "admin") navGroups.push(adminGroup);
+  // Menu disusun murni dari role aktif (tidak ada menu dasar untuk semua role).
+  const navGroups = navForRole(me?.role);
 
   return (
     <div className="flex min-h-screen bg-surface-container-low">
