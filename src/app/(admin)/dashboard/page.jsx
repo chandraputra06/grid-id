@@ -130,9 +130,11 @@ export default function AdminBeranda() {
   const health = total ? Math.round((lv.aman / total) * 100) : 0;
   const kritisList = data?.aset_terkritis || [];
   const updated = data?.generated_at ? new Date(data.generated_at).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) : null;
+  const isPetugas = data?.scope === "petugas";
+  const scopeLabel = isPetugas ? "Wilayah Tugas" : "Ringkasan Nasional";
 
   const kpis = [
-    { label: "Total Aset Dipantau", value: String(total), unit: "", icon: "hub", tone: "text-brand", sub: `${data?.deteksi_7hari || 0} deteksi 7 hari terakhir`, subTone: "text-on-surface-variant" },
+    { label: isPetugas ? "Aset Wilayah Tugas" : "Total Aset Dipantau", value: String(total), unit: "", icon: "hub", tone: "text-brand", sub: `${data?.deteksi_7hari || 0} deteksi 7 hari terakhir`, subTone: "text-on-surface-variant" },
     { label: "Status Grid", value: LEVEL[gridLevel].label, unit: "", icon: "verified_user", tone: LEVEL[gridLevel].text, sub: `${lv.aman}/${total} aset normal`, subTone: "text-on-surface-variant" },
     { label: "AI Health Score", value: String(health), unit: "/100", icon: "neurology", tone: "text-brand", sub: `${lv.kritis} kritis · ${lv.waspada} waspada`, subTone: "text-on-surface-variant" },
   ];
@@ -152,9 +154,12 @@ export default function AdminBeranda() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-heading text-2xl font-extrabold text-on-surface">Dashboard Ringkasan Nasional</h1>
+        <h1 className="font-heading text-2xl font-extrabold text-on-surface">
+          {isPetugas ? "Dashboard Wilayah Tugas" : "Dashboard Ringkasan Nasional"}
+        </h1>
         <p className="font-body-md text-body-md text-on-surface-variant">
-          Pantauan kesehatan jaringan listrik nasional.{updated ? ` Diperbarui pukul ${updated}.` : ""}
+          {isPetugas ? "Pantauan aset dan laporan pada wilayah tugas Anda." : "Pantauan kesehatan jaringan listrik nasional."}
+          {updated ? ` Diperbarui pukul ${updated}.` : ""}
         </p>
       </div>
 
@@ -179,7 +184,7 @@ export default function AdminBeranda() {
         <div className="rounded-2xl border border-outline-variant bg-card-surface p-5 shadow-sm lg:col-span-2">
           <div className="flex items-center justify-between">
             <h2 className="font-heading text-lg font-bold">Peta Topologi Grid</h2>
-            <span className="font-label-sm text-label-sm text-on-surface-variant">Ringkasan Nasional</span>
+            <span className="font-label-sm text-label-sm text-on-surface-variant">{scopeLabel}</span>
           </div>
           <div className="mt-3 flex flex-wrap gap-4 border-b border-outline-variant pb-3 font-body-md text-[12px] text-on-surface-variant">
             <span>Total: <b className="text-on-surface">{total}</b></span>
@@ -187,14 +192,16 @@ export default function AdminBeranda() {
             <span>Waspada: <b className="text-risk-waspada">{lv.waspada}</b></span>
             <span>Aman: <b className="text-risk-aman">{lv.aman}</b></span>
           </div>
-          <div className="mt-3 h-60 overflow-hidden rounded-xl">
+          <div className="mt-3 h-[440px] overflow-hidden rounded-xl">
             {points.length > 0 || reportsGeo.length > 0 ? (
               <PetaMap zona={points} laporan={reportsGeo} />
             ) : (
               <div className="grid h-full place-items-center bg-gradient-to-br from-surface-container-low to-surface-container text-on-surface-variant">
                 <div className="text-center">
                   <span className="material-symbols-outlined text-5xl text-brand">public</span>
-                  <p className="mt-2 font-body-md text-[13px]">Belum ada aset dengan koordinat untuk dipetakan.</p>
+                  <p className="mt-2 font-body-md text-[13px]">
+                    {isPetugas ? "Belum ada aset/laporan berkoordinat pada wilayah tugas Anda." : "Belum ada aset dengan koordinat untuk dipetakan."}
+                  </p>
                 </div>
               </div>
             )}
