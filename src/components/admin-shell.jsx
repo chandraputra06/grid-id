@@ -43,6 +43,7 @@ const NAV = [
   {
     label: "Perangkat",
     items: [
+      { icon: "memory", label: "Hardware Monitoring", href: "/dashboard/hardware", roles: ["admin", "supervisor", "hardware"] },
       { icon: "sensors", label: "Perangkat IoT", href: "/dashboard/perangkat", roles: ["admin", "hardware"] },
     ],
   },
