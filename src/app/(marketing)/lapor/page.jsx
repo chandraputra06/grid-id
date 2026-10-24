@@ -24,6 +24,7 @@ import {
   severityColor,
   sortBySeverity,
 } from "@/lib/ai-defects";
+import RiskNearbyAlert from "@/components/risk-nearby-alert";
 
 const LOAD_DURATION_MS = 2000;
 const QUOTES = [
@@ -418,6 +419,9 @@ export default function Lapor() {
             Ambil foto tiang atau kabel dari jarak aman, lalu kirim. Laporanmu masuk ke sistem untuk diverifikasi petugas.
           </p>
         </div>
+
+        {/* Peringatan risiko di sekitar lokasi warga */}
+        <RiskNearbyAlert className="mb-6" />
 
         {/* Peringatan Keselamatan */}
         <div className="group relative mb-6 overflow-hidden rounded-xl border border-[#FCA5A599] bg-linear-to-r from-white to-[#FECACA] p-4 pr-32 sm:pr-40">

@@ -4,6 +4,7 @@ import { Reveal } from "@/components/motion";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Montserrat } from "next/font/google";
+import RiskNearbyAlert from "@/components/risk-nearby-alert";
 
 const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-montserrat", display: "swap" });
 
@@ -300,6 +301,9 @@ export default function Beranda() {
             </div>
           </div>
         )}
+
+        {/* Peringatan risiko di sekitar lokasi warga (data real dari API) */}
+        <RiskNearbyAlert className="mb-6" />
 
         <Reveal>
           <div
