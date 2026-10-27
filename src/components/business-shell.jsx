@@ -3,6 +3,7 @@
 // memakai token & pola visual yang sama dengan Dashboard Supervisor (AdminShell).
 import { createContext, useContext, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
 import { api } from "@/lib/api";
 import { supabase } from "@/lib/supabase";
 
@@ -55,13 +56,17 @@ export function BusinessShell({ children }) {
   const nav = (
     <nav className="flex flex-col gap-1" aria-label="Navigasi Business Portal">
       {BUSINESS_NAV.map((n) => (
-        <a key={n.href} href={n.href}
+        <motion.a key={n.href} href={n.href}
+          whileHover={{ x: 2 }}
+          whileTap={{ scale: 0.98 }}
+          transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+          aria-current={isActive(n.href) ? "page" : undefined}
           className={`flex items-center gap-3 rounded-xl px-3 py-2.5 font-heading text-sm font-bold transition-colors ${
             isActive(n.href) ? "bg-brand text-white shadow-sm" : "text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface"
           }`}>
           <span className="material-symbols-outlined text-[20px]">{n.icon}</span>
           {n.label}
-        </a>
+        </motion.a>
       ))}
     </nav>
   );
@@ -79,17 +84,33 @@ export function BusinessShell({ children }) {
         </aside>
 
         {/* Drawer mobile */}
-        {open && (
-          <div className="fixed inset-0 z-40 bg-on-surface/40 lg:hidden" onClick={() => setOpen(false)}>
-            <aside className="h-full w-72 max-w-[85%] overflow-y-auto bg-card-surface p-4" onClick={(e) => e.stopPropagation()}>
-              <Brand />
-              <div className="mt-6">{nav}</div>
-              <button onClick={logout} className="mt-4 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 font-heading text-sm font-bold text-on-surface-variant hover:bg-surface-container-low">
-                <span className="material-symbols-outlined text-[20px]">logout</span> Keluar
-              </button>
-            </aside>
-          </div>
-        )}
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              className="fixed inset-0 z-40 bg-on-surface/40 lg:hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setOpen(false)}
+            >
+              <motion.aside
+                className="h-full w-72 max-w-[85%] overflow-y-auto bg-card-surface p-4"
+                initial={{ x: -24 }}
+                animate={{ x: 0 }}
+                exit={{ x: -24 }}
+                transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Brand />
+                <div className="mt-6">{nav}</div>
+                <button onClick={logout} className="mt-4 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 font-heading text-sm font-bold text-on-surface-variant hover:bg-surface-container-low">
+                  <span className="material-symbols-outlined text-[20px]">logout</span> Keluar
+                </button>
+              </motion.aside>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-outline-variant bg-card-surface/95 px-4 py-3 backdrop-blur sm:px-6">
@@ -127,9 +148,7 @@ export function BusinessShell({ children }) {
 function Brand() {
   return (
     <a href="/business" className="flex items-center gap-2 px-2">
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand text-white">
-        <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
-      </span>
+      <img src="/grid-logos.png" alt="GRID·ID" className="h-10 w-10 shrink-0 object-contain" />
       <span>
         <span className="block font-heading text-lg font-black leading-none text-on-surface">GRID<span className="text-accent">·</span>ID</span>
         <span className="block font-heading text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Business Portal</span>

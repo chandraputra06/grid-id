@@ -167,6 +167,12 @@ a[class*="rounded"]:not([aria-disabled="true"]) {
   transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+button:not(:disabled):hover,
+[role="button"]:not([aria-disabled="true"]):hover,
+a[class*="rounded"]:not([aria-disabled="true"]):hover {
+  transform: translateY(-1px);
+}
+
 button:not(:disabled):active,
 [role="button"]:not([aria-disabled="true"]):active,
 a[class*="rounded"]:not([aria-disabled="true"]):active {

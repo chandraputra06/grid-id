@@ -235,7 +235,7 @@ export function Modal({ open, onClose, title, children, wide }) {
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-on-surface/40 p-4 sm:p-8" onClick={onClose} role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-on-surface/40 p-4 sm:p-8" onClick={onClose} role="dialog" aria-modal="true">
       <div className={`w-full ${wide ? "max-w-5xl" : "max-w-lg"} rounded-2xl border border-outline-variant bg-card-surface shadow-xl`} onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-outline-variant px-5 py-3">
           <h3 className="font-heading text-base font-bold text-on-surface">{title}</h3>
