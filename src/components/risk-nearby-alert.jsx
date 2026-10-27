@@ -21,8 +21,6 @@ const distKm = (a, b) => {
   const dLng = (a.lng - b.lng) * 111.2 * Math.cos((a.lat * Math.PI) / 180);
   return Math.sqrt(dLat * dLat + dLng * dLng);
 };
-const levelFromScore = (s) => (s >= 65 ? "kritis" : s >= 35 ? "waspada" : "aman");
-
 // Skor 0-100 dari kumpulan laporan di sekitar (sama rumus dengan halaman peta publik).
 function scoreOf(list) {
   const k = list.filter((l) => l.level === "kritis").length;
@@ -85,7 +83,8 @@ export default function RiskNearbyAlert({ radius = 5, className = "" }) {
       };
       if (counts.total === 0) return setState("quiet"); // tidak ada data → jangan klaim apa pun
       const score = scoreOf(near);
-      const level = counts.kritis > 0 ? "kritis" : levelFromScore(score);
+      // Level mengikuti tingkat terparah yang ADA di sekitar (konsisten dengan judul banner).
+      const level = counts.kritis > 0 ? "kritis" : counts.waspada > 0 ? "waspada" : "aman";
       setSummary({ score, level, counts, nearest: near[0] || null });
       setState("ok");
     } catch {

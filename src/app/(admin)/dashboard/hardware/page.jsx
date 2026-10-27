@@ -121,26 +121,62 @@ export default function HardwareOverview() {
   );
 }
 
+// Status integrasi mencerminkan DUA jalur: adapter REST (Sistem_IoT, dipakai alat saat ini)
+// dan bridge firebase-admin lama. "Siap" dinilai dari sumber yang benar-benar aktif + telemetri mengalir.
 function IntegrationStatus({ status, overview }) {
   if (!status) return null;
   const fb = status.firebase || {};
   const br = status.bridge || {};
+  const ad = status.adapter || {};
+  const c = ad.counters || {};
+
+  const adapterActive = !!ad.enabled;
+  const telemetryFlowing = (c.telemetry || 0) > 0 || !!br.rtdb_connected || !!(overview && overview.last_telemetry_at);
+  // Data dianggap mengalir bila adapter aktif & ada telemetri, atau bridge lama terhubung.
+  const receiving = (adapterActive && telemetryFlowing) || (!!br.enabled && !!br.rtdb_connected);
+
   const items = [
-    { label: "Firebase", ok: fb.status === "initialized", text: fb.status === "initialized" ? `Proyek ${fb.project_id || "—"}` : fb.error || "Belum dikonfigurasi" },
-    { label: "Realtime Database", ok: !!br.rtdb_connected, text: !fb.realtime_database ? "Belum dikonfigurasi" : br.rtdb_connected ? "Terhubung" : br.rtdb_connected === false ? "Terputus" : "Belum terverifikasi" },
-    { label: "Storage gambar", ok: !!fb.storage, text: fb.storage ? "Terkonfigurasi" : "Belum dikonfigurasi" },
-    { label: "Bridge backend", ok: !!br.enabled, text: br.enabled ? `${br.devices_attached} perangkat didengarkan` : br.reason || "Tidak aktif" },
-    { label: "Layanan AI (YOLO)", ok: !!(status.ai_service && status.ai_service.configured), text: status.ai_service && status.ai_service.configured ? "Terkonfigurasi" : "GRID_AI_URL belum diset" },
+    {
+      label: "Sumber data (Firebase RTDB)",
+      ok: adapterActive || !!br.rtdb_connected,
+      text: adapterActive ? "Adapter polling aktif" : br.rtdb_connected ? "Terhubung" : fb.status === "initialized" ? "Siap" : "Belum aktif",
+    },
+    {
+      label: "Aliran telemetri",
+      ok: telemetryFlowing,
+      text: overview && overview.last_telemetry_at
+        ? `Terakhir ${fmtRelative(overview.last_telemetry_at)}`
+        : c.telemetry ? `${c.telemetry} pembacaan tersimpan` : "Belum ada data masuk",
+    },
+    {
+      label: "Backend ingest",
+      ok: adapterActive || !!br.enabled,
+      text: adapterActive ? "Adapter aktif" : br.enabled ? `${br.devices_attached} perangkat (bridge)` : br.reason || ad.reason || "Tidak aktif",
+    },
+    {
+      label: "Layanan AI (YOLO)",
+      ok: !!(status.ai_service && status.ai_service.configured),
+      text: status.ai_service && status.ai_service.configured ? "Terkonfigurasi" : "GRID_AI_URL belum diset",
+    },
+    {
+      label: "Deteksi foto",
+      ok: (c.frames || 0) > 0 || (c.detections || 0) > 0 || !!fb.storage,
+      text: (c.frames || 0) > 0 ? `${c.frames} frame · ${c.detections || 0} deteksi` : "Menunggu foto insiden",
+    },
   ];
+  const lastError = ad.last_error || br.last_error;
+  const lastEventAt = ad.last_poll_at || br.last_telemetry_event_at;
+
   return (
     <div className="space-y-3">
-      {overview && <IntegrationBanner firebase={overview.integration.firebase} storage={overview.integration.storage} lastTelemetryAt={overview.last_telemetry_at} />}
+      {/* Banner peringatan hanya saat data benar-benar tidak masuk. */}
+      {!receiving && overview && <IntegrationBanner firebase={overview.integration.firebase} storage={overview.integration.storage} lastTelemetryAt={overview.last_telemetry_at} />}
       <details className="rounded-2xl border border-outline-variant bg-card-surface p-4 shadow-sm">
         <summary className="flex cursor-pointer flex-wrap items-center gap-2 font-heading text-sm font-bold text-on-surface">
           <span className="material-symbols-outlined text-brand">hub</span> Status integrasi data
           <span className="font-body-md text-[12px] font-normal text-on-surface-variant">
             {items.filter((i) => i.ok).length}/{items.length} komponen siap
-            {br.last_telemetry_event_at ? ` · event telemetri terakhir ${fmtRelative(br.last_telemetry_event_at)}` : ""}
+            {lastEventAt ? ` · aktivitas terakhir ${fmtRelative(lastEventAt)}` : ""}
           </span>
         </summary>
         <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
@@ -153,8 +189,8 @@ function IntegrationStatus({ status, overview }) {
             </li>
           ))}
         </ul>
-        {br.last_error && (
-          <p className="mt-2 rounded-lg bg-risk-kritis/10 px-3 py-2 font-body-md text-[12px] text-risk-kritis">Error terakhir ({br.last_error.where}, {fmtRelative(br.last_error.at)}): {br.last_error.message}</p>
+        {lastError && (
+          <p className="mt-2 rounded-lg bg-risk-kritis/10 px-3 py-2 font-body-md text-[12px] text-risk-kritis">Error terakhir ({lastError.where}, {fmtRelative(lastError.at)}): {lastError.message}</p>
         )}
       </details>
     </div>
