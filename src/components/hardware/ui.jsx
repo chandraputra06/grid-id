@@ -136,23 +136,24 @@ export function EmptyState({ icon = "inbox", title, text, children, compact }) {
   );
 }
 
-// Banner status integrasi Firebase — jujur: tidak mengklaim terhubung sebelum ada data.
+// Banner status integrasi — jujur: hanya muncul saat BELUM ada telemetri yang diterima.
+// Data bisa masuk lewat adapter REST (Sistem_IoT) maupun bridge firebase-admin; begitu ada
+// telemetri, pipeline terbukti bekerja sehingga banner disembunyikan. Firebase Storage tidak
+// wajib karena gambar insiden memakai URL publik (ImgBB), bukan Firebase Storage.
 export function IntegrationBanner({ firebase, storage, lastTelemetryAt }) {
-  if (!firebase) return null;
+  if (lastTelemetryAt) return null; // telemetri mengalir -> jangan klaim data belum diterima
+  if (!firebase) return null; // status integrasi belum termuat
   const m = INTEGRATION[firebase] || INTEGRATION.error;
-  if (firebase === "initialized" && storage === "ready" && lastTelemetryAt) return null;
-  const notes = [];
-  if (firebase !== "initialized") notes.push("Data telemetri dan gambar dari perangkat belum dapat diterima.");
-  else if (storage !== "ready") notes.push("Firebase Storage belum dikonfigurasi — gambar RGB/thermal tidak dapat ditampilkan.");
-  if (firebase === "initialized" && !lastTelemetryAt) notes.push("Firebase siap, namun belum ada telemetri yang diterima dari perangkat mana pun.");
+  const note =
+    firebase === "initialized"
+      ? "Sumber data siap, namun belum ada telemetri yang diterima dari perangkat mana pun."
+      : "Belum ada telemetri yang diterima. Pastikan sumber data (adapter Sistem_IoT atau bridge) aktif dan Rules RTDB mengizinkan baca.";
   return (
     <div className={`flex items-start gap-3 rounded-2xl border border-outline-variant p-4 ${m.cls}`}>
       <span className="material-symbols-outlined">{m.icon}</span>
       <div>
         <p className="font-heading text-sm font-bold">{m.label}</p>
-        {notes.map((n) => (
-          <p key={n} className="font-body-md text-[13px] text-on-surface-variant">{n}</p>
-        ))}
+        <p className="font-body-md text-[13px] text-on-surface-variant">{note}</p>
       </div>
     </div>
   );
